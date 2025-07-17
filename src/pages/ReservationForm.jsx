@@ -22,11 +22,11 @@ const ReservationForm = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-            <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-sm text-center">
+            <div className="bg-white h-screen shadow-xl rounded-2xl p-8 w-full max-w-sm text-center flex items-center flex-col justify-center">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Reserve Your Table</h2>
                 <p className="text-sm text-gray-500 mb-6">Enter your details to join the queue</p>
 
-                <form onSubmit={handleSubmit} className="space-y-5 text-left">
+                <div className="w-full space-y-5 text-left">
                     {/* Full Name */}
                     <div>
                         <label className="text-sm text-gray-700 block mb-1">Full Name</label>
@@ -80,17 +80,19 @@ const ReservationForm = () => {
 
                     {/* Submit Button */}
                     <button
-                        type="submit"
+                        onClick={handleSubmit}
                         className="bg-orange-500 text-white py-2.5 w-full rounded-lg hover:bg-orange-600 transition text-base font-medium"
                     >
                         Confirm Reservation
                     </button>
-                </form>
+                </div>
 
-                <p className="text-xs text-gray-500 mt-6 flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    You will receive a confirmation message with your reservation number.
+
+                <p className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-700 bg-orange-50 px-4 py-2 rounded-lg">
+                    <Icon icon="zondicons:exclamation-solid" className="text-orange-500 w-5 h-5" />
+                    <span>You will receive a confirmation message with your reservation number.</span>
                 </p>
+
             </div>
         </div>
     );
