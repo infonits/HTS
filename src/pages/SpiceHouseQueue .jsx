@@ -71,7 +71,7 @@ const SpiceHouseQueue = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 ">
+        <div className="min-h-screen bg-gray-50 font-poppins">
 
             {/* Header */}
             <div className=" bg-white">
@@ -180,7 +180,7 @@ const SpiceHouseQueue = () => {
                                             .map((table) => (
                                                 <div
                                                     key={table.id}
-                                                    className="bg-green-500 text-white p-3 rounded-lg mb-3 relative"
+                                                    className="bg-green-800 text-white p-3 rounded-lg mb-3 relative"
                                                 >
                                                     <button
                                                         onClick={() => removeAssignment(table.id)}
@@ -215,7 +215,15 @@ const SpiceHouseQueue = () => {
                     </div>
                 </div>
             </div>
+            {/* Add footer 
+able to add tables 
+icons setup
+add logo in nav bar
+waiting time in every cards.. 
 
+if people is not suitable ask alert.... 
+
+*/}
         </div>
 
     );

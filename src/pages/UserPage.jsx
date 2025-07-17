@@ -9,8 +9,8 @@ export default function UserPage() {
         navigate(-1)
     };
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-            <div className="bg-white h-screen shadow-xl rounded-2xl w-full max-w-sm text-center flex flex-col">
+        <div className="min-h-screen flex  items-center justify-center bg-gray-100 sm:px-4 px-0">
+            <div className="bg-white h-screen  w-full sm:max-w-sm   text-center flex flex-col gap-3">
 
                 {/* Sticky Top Nav */}
                 <div className="sticky top-0 bg-white shadow-sm border-b border-gray-100 z-10">
@@ -34,13 +34,14 @@ export default function UserPage() {
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-8 flex justify-center items-center">
-                    {/* <PartySizeSelector /> */}
+                <div className="flex-1 overflow-y-auto p-8 flex justify-center items-center shadow-xl rounded-2xl">
+
                     <Outlet />
                 </div>
-            </div>
-            <div>
-
+                <div className='p-3 shadow-xl rounded-2xl bg-white mb-2'>
+                    Dev by infonits | © 2025
+                    Privacy Policy | v1.0.0
+                </div>
             </div>
         </div>
 
