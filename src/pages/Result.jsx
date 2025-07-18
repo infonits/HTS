@@ -36,13 +36,13 @@ export default function Result() {
             {/* Reservation Details Card */}
             <div className=" shadow-lg  rounded-2xl p-3 text-center">
                 <div className="mb-4">
-                    <p className="text-orange-600 text-sm font-medium mb-1">Reservation Number</p>
+                    <p className="text-orange-600 text-md font-medium mb-1">Reservation Number</p>
                     <p className="text-4xl font-bold text-orange-600">#R042</p>
                 </div>
 
                 <div className='bg-orange-100 rounded-2xl p-2'>
                     <p className="text-md font-semibold text-gray-800">You are 4th in the queue</p>
-                    <p className="text-orange-600 text-sm font-medium mb-1">Estimated wait time: 15-30 minutes</p>
+                    <p className="text-orange-600 text-md font-medium mb-1">Estimated wait time: 15-30 minutes</p>
                 </div>
 
                 <div className='p-1'>

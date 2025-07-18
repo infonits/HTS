@@ -23,7 +23,7 @@ const PartySizeSelector = () => {
     <div className='flex flex-col'>
 
       <h2 className="text-2xl font-bold text-gray-800 mb-2">Select Party Size</h2>
-      <p className="text-sm text-gray-500 mb-6">How many people will be dining?</p>
+      <p className="text-md text-gray-500 mb-6">How many people will be dining?</p>
 
       <div className="flex items-center justify-center gap-6 mb-8">
         <button
@@ -34,7 +34,7 @@ const PartySizeSelector = () => {
         </button>
         <div className='flex flex-col'>
           <span className="text-6xl font-extrabold text-orange-500">{count}</span>
-          <span className='text-sm'>People</span>
+          <span className='text-md'>People</span>
         </div>
         <button
           onClick={increaseCount}
@@ -44,11 +44,11 @@ const PartySizeSelector = () => {
         </button>
       </div>
 
-      <p className="text-xs text-gray-400 my-10">Maximum 8 people per reservation</p>
+      <p className="text-md text-gray-400 my-10">Maximum 8 people per reservation</p>
 
       <button
         onClick={handleConfirm}
-        className="bg-orange-500 text-white text-base font-medium py-2.5 px-4 w-full rounded-lg hover:bg-orange-600 transition"
+        className="bg-orange-500 text-white text-lg font-medium py-2.5 px-4 w-full rounded-lg hover:bg-orange-600 transition"
       >
         Confirm Selection
       </button>

@@ -47,7 +47,7 @@ const ReservationForm = () => {
 
     const inputWrapper = (field, icon, type, placeholder) => (
         <div className="mb-4">
-            <label className="text-sm text-gray-700 block mb-1 capitalize">
+            <label className="text-md text-gray-700 block mb-1 capitalize">
                 {field.replace(/^\w/, (c) => c.toUpperCase())}
             </label>
             <div
@@ -61,7 +61,7 @@ const ReservationForm = () => {
                     value={form[field]}
                     onChange={handleChange}
                     placeholder={placeholder}
-                    className="bg-transparent w-full outline-none text-sm"
+                    className="bg-transparent w-full outline-none text-md"
                     required
                 />
             </div>
@@ -81,7 +81,7 @@ const ReservationForm = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 Reserve Your Table
             </h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-md text-gray-500 mb-6">
                 Enter your details to join the queue
             </p>
 
@@ -106,16 +106,16 @@ const ReservationForm = () => {
                 )}
                 <button
                     type="submit"
-                    className="bg-orange-500 text-white py-2.5 w-full rounded-lg hover:bg-orange-600 transition text-base font-medium"
+                    className="bg-orange-500 text-white py-2.5 w-full rounded-lg hover:bg-orange-600 transition text-lg font-medium"
                 >
                     Confirm Reservation
                 </button>
             </div>
 
-            <p className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-700 bg-orange-50 px-4 py-2 rounded-lg">
+            <p className="mt-6 flex items-center justify-center gap-2 text-md text-gray-700 bg-orange-50 px-4 py-2 rounded-lg">
                 <Icon
                     icon="zondicons:exclamation-solid"
-                    className="text-orange-500 w-5 h-5"
+                    className="text-orange-500 w-8 h-8"
                 />
                 <span>
                     You will receive a confirmation message with your reservation
