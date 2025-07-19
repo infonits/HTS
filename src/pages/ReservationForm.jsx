@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useNavigate } from 'react-router-dom';
+import { useGuest } from '../context/guestContext'; // adjust path as needed
+import { supabase } from '../supabaseClient';
 
 const ReservationForm = () => {
-    const [form, setForm] = useState({ name: '', phone: '', email: '' });
+    const { guestDetails, setGuestDetails, guestCount, saveReservationId } = useGuest();
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
     const validate = () => {
         const errs = {};
-        if (!form.name.trim()) {
+        if (!guestDetails.name.trim()) {
             errs.name = 'Full name is required';
         }
-        if (!form.phone.trim()) {
+        if (!guestDetails.phone.trim()) {
             errs.phone = 'Phone number is required';
-        } else if (!/^\d{7,15}$/.test(form.phone.trim())) {
+        } else if (!/^\d{7,15}$/.test(guestDetails.phone.trim())) {
             errs.phone = 'Enter a valid phone number (7–15 digits)';
         }
-        if (!form.email.trim()) {
+        if (!guestDetails.email.trim()) {
             errs.email = 'Email is required';
         } else if (
             !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
-                form.email.trim()
+                guestDetails.email.trim()
             )
         ) {
             errs.email = 'Enter a valid email address';
@@ -30,20 +32,40 @@ const ReservationForm = () => {
     };
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        setGuestDetails({ ...guestDetails, [e.target.name]: e.target.value });
         setErrors({ ...errors, [e.target.name]: undefined });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-        // all good, proceed
+
+        const { name, phone, email } = guestDetails;
+
+        // Save to Supabase
+        const { data, error } = await supabase.from('queues').insert([
+            {
+                guests_count: guestCount,
+                name,
+                phone,
+                email,
+            }
+        ]).select().single();
+
+        if (error) {
+            console.error('Failed to save to Supabase:', error.message);
+            alert("Failed to save reservation. Please try again.");
+            return;
+        }
+        saveReservationId(data.id)
         navigate('/user/result');
     };
+
+
 
     const inputWrapper = (field, icon, type, placeholder) => (
         <div className="mb-4">
@@ -58,7 +80,7 @@ const ReservationForm = () => {
                 <input
                     type={type}
                     name={field}
-                    value={form[field]}
+                    value={guestDetails[field]}
                     onChange={handleChange}
                     placeholder={placeholder}
                     className="bg-transparent w-full outline-none text-md"

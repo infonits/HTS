@@ -10,10 +10,10 @@ export default function UserPage() {
     };
     return (
         <div className="min-h-screen flex   justify-center  sm:px-4 px-0">
-            <div className="bg-white w-full sm:max-w-sm   text-center">
+            <div className=" w-full sm:max-w-sm   text-center">
 
                 {/* Sticky Top Nav */}
-                <div className=" bg-white shadow-sm border-b border-gray-100 my-2 shadow-xl rounded-2xl">
+                <div className=" bg-orange-500 text-white shadow-sm border-b border-gray-100 my-2 shadow-xl rounded-2xl">
                     <div className="flex items-center justify-between px-4 py-3">
                         <button
                             onClick={handleBack}
@@ -26,7 +26,7 @@ export default function UserPage() {
                             <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
                                 <Icon icon="mdi:utensils-variant" width="24" height="24" className="text-white" />
                             </div>
-                            <span className="text-lg font-semibold text-gray-800">Dine In Place</span>
+                            <span className="text-lg font-semibold">Dine In Place</span>
                         </div>
 
                         <div className="w-10 h-10" />
