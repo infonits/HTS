@@ -19,8 +19,12 @@ const formatTime = (iso) => {
     return `${h}.${m}${ampm}`;            // 11.00AM
 };
 
+
+
 /* ===== COMPONENT ===== */
 const Dashboard = () => {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
     const [queues, setQueues] = useState([]);
     const [tables, setTables] = useState([]);          // from Supabase
     const [assigned, setAssigned] = useState([]);
@@ -77,6 +81,13 @@ const Dashboard = () => {
         };
     }, []);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000); // updates every second
+
+        return () => clearInterval(interval); // cleanup on unmount
+    }, []);
 
     /* ------ drag helpers ------ */
     const handleDragStart = (e, queue) => e.dataTransfer.setData('text/plain', JSON.stringify(queue));
@@ -121,7 +132,16 @@ const Dashboard = () => {
             // Optional: restore in UI
         }
     };
+    const formatDuration = (startTime) => {
+        const created = new Date(startTime);
+        const diff = Math.floor((currentTime - created) / 1000); // in seconds
 
+        const mins = Math.floor(diff / 60);
+        const secs = diff % 60;
+
+        if (mins === 0) return `${secs}s`;
+        return `${mins}m ${secs}s`;
+    };
     const completeQueue = async (id) => {
         setAssigned(prev => prev.filter(q => q.id !== id));
 
@@ -154,17 +174,24 @@ const Dashboard = () => {
         <div className="min-h-screen bg-gray-50 font-poppins">
             {/* header */}
             <header className="bg-white p-3 flex justify-between">
-                <h1 className="text-3xl font-bold">Spice House</h1>
+                <h1 className="text-3xl font-bold">Queuegenix</h1>
                 <div className="text-right text-gray-600">
-                    <div className="text-lg font-bold">{formatTime(new Date().toISOString())}</div>
-                    <div className="text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="text-lg font-bold">{formatTime(currentTime.toISOString())}</div>
+                    <div className="text-base">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
                 </div>
             </header>
 
             {/* body */}
             <div className="grid grid-cols-1 md:grid-cols-5">
+
                 {/* stats */}
-                <aside className="bg-white flex flex-col gap-4 px-4 py-6">
+                <aside className="bg-white flex flex-col gap-4 px-4 py-6 text-center">
+                    <div className='w-full '>
+                        <div className='w-20 h-20 bg-orange-500 rounded-full mx-auto flex flex-col justify-center text-white items-center'>
+                            <Icon icon="material-symbols:dine-in-sharp" className='h-10 w-10' />
+                        </div>
+                        <p className="text-xl font-semibold">Spice House</p>
+                    </div>
                     <div className="bg-gray-50 p-4 rounded-lg flex justify-between">
                         <span>Active Queues</span><span className="font-bold text-orange-500">{queues.length}</span>
                     </div>
@@ -190,29 +217,46 @@ const Dashboard = () => {
                                         key={q.id}
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, q)}
-                                        className="bg-orange-500 text-white p-4 rounded-lg cursor-move hover:bg-orange-600 transition relative"
+                                        className="bg-orange-500 text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
                                     >
                                         <button className="absolute top-2 right-2" onClick={() => declineQueue(q.id)} title="Decline">
                                             <Icon icon="material-symbols:close-rounded" className='h-4 w-4' />
                                         </button>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="font-semibold">{q.name}</span>
-                                            <span>{formatTime(q.created_at)}</span>
+                                        <div className="flex justify-between items-center text-base font-medium">
+                                            <div className="flex flex-col">
+                                                <span className="text-lg text-white/60">#Q{q.id}</span> {/* Short ID */}
+                                                <span className="text-white font-semibold">{q.name}</span>
+                                            </div>
+                                            <span className="text-sm text-white/70 flex items-center gap-1">
+                                                <Icon icon="mdi:clock-outline" className="w-4 h-4" />
+                                                {formatTime(q.created_at)}
+                                            </span>
+
                                         </div>
-                                        <div className="flex items-center mt-1 text-sm">
-                                            <Icon icon="mdi:account-group" className="w-4 h-4 mr-1" />
-                                            {q.guests_count} People
+
+                                        <div className='flex flex-row gap-3'>
+                                            <div className="flex items-center mt-1 text-base">
+                                                <Icon icon="mdi:account-group" className="w-4 h-4 mr-1" />
+                                                {q.guests_count} People
+                                            </div>
+
+                                            <div className="text-base mt-1 italic flex justify-left items-center">
+                                                <Icon icon="gg:sand-clock" className='h-4 w-4' />
+                                                {formatDuration(q.created_at)}
+                                            </div>
+
                                         </div>
+
                                     </div>
                                 ))}
-                            {queues.length === 0 && <p className="text-gray-400 text-sm">No queues for today 🎉</p>}
+                            {queues.length === 0 && <p className="text-gray-400 text-base">No queues for today 🎉</p>}
                         </div>
                     </section>
 
                     {/* table grid */}
                     <section className="lg:col-span-2 space-y-6">
                         <div className="flex justify-end">
-                            <button onClick={() => setShowAdd(true)} className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
+                            <button onClick={() => setShowAdd(true)} className="bg-blue-600 text-white px-3 py-1 rounded-md text-base">
                                 + Add Table
                             </button>
                         </div>
@@ -222,7 +266,7 @@ const Dashboard = () => {
                                 <div key={t.id} className="bg-white rounded-lg shadow-sm">
                                     <header className="p-4 border-b border-gray-200 flex items-center space-x-3">
                                         <div className={`w-3 h-3 ${t.color} rounded-full`} />
-                                        <h3 className="font-semibold">{t.name}</h3>
+                                        <h3 className="font-semibold">{t.name} ({t.capacity} tables)</h3>
                                     </header>
                                     <div
                                         className={`p-6 min-h-48 border-2 border-dashed rounded-b-lg ${t.color.replace('500', '200')} `}
@@ -231,13 +275,13 @@ const Dashboard = () => {
                                     >
                                         {assigned.filter(a => a.table_id === t.id).map(a => (
                                             <div key={a.id} className="bg-green-800 text-white p-3 rounded-lg mb-3 relative">
-                                                <div className="text-sm font-semibold">{a.name} k</div>
-                                                <div className="text-xs">{formatTime(a.created_at)}</div>
+                                                <div className="text-base font-semibold">{a.name} k</div>
+                                                <div className="text-base">{formatTime(a.created_at)}</div>
                                                 <button
                                                     className="absolute top-2 right-2 text-white"
                                                     title="Mark completed"
                                                     onClick={() => completeQueue(a.id)}
-                                                >sdf
+                                                >
                                                     <Icon icon="mdi:check-circle" className="w-5 h-5 text-white hover:text-green-300 transition" />
                                                 </button>
                                             </div>

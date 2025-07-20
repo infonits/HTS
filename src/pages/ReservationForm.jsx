@@ -134,14 +134,13 @@ const ReservationForm = () => {
                 </button>
             </div>
 
-            <p className="mt-6 flex items-center justify-center gap-2 text-md text-gray-700 bg-orange-50 px-4 py-2 rounded-lg">
+            <p className="mt-6 flex items-center justify-center  text-md text-gray-700 bg-orange-50 gap-2 py-2 rounded-lg">
                 <Icon
                     icon="zondicons:exclamation-solid"
-                    className="text-orange-500 w-8 h-8"
+                    className="text-orange-500 w-4 h-4"
                 />
                 <span>
-                    You will receive a confirmation message with your reservation
-                    number.
+                    You will receive a confirmation message.
                 </span>
             </p>
         </form>

@@ -58,23 +58,74 @@ export default function Result() {
                     table: 'queues',
                     filter: `id=eq.${reservationId}`
                 },
-                async (payload) => {
+                (payload) => {
                     console.log("🔁 Realtime update received:", payload.new);
                     setReservationDetails(payload.new);
-                    await fetchQueuePosition();
+
 
                 }
-            )
-            .subscribe();
+            ).on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'queues',
+                },
+                async () => {
+                    console.log("📦 Another reservation changed");
+                    await fetchQueuePosition(); // recalculate even if others change
+                }
+            ).subscribe();
 
         return () => {
             supabase.removeChannel(subscription);
         };
     }, [reservationId]);
 
-    const handleBackHome = () => {
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            // 👇 Only trigger if still waiting
+            if (reservationDetails?.status === 'waiting') {
+                e.preventDefault();
+                e.returnValue = ''; // Required for Chrome/Edge
+            }
+        };
+
+        // Add only if 'waiting'
+        if (reservationDetails?.status === 'waiting') {
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [reservationDetails?.status]);
+
+
+
+    const handleBackHome = async () => {
+        // Only show confirm if still in waiting status
+        if (reservationDetails?.status === 'waiting') {
+            const confirmed = window.confirm("You're already in queue. Are you sure you want to cancel this?");
+
+            if (!confirmed) return;
+
+            const { error } = await supabase
+                .from('queues')
+                .update({ status: 'cancelled' })
+                .eq('id', reservationId);
+
+            if (error) {
+                console.error("Failed to cancel reservation:", error.message);
+            }
+        }
+
+        localStorage.removeItem("reservationId");
         navigate('/user');
     };
+
+
 
     const formatTime = (timeStr) => {
         return dayjs(timeStr).format('hh:mm A');
@@ -173,7 +224,7 @@ export default function Result() {
                 </div>
             ) : (
                 <div>
-                    <div className="flex flex-col items-center gap-2 justify-center mb-8">
+                    <div className="flex flex-col items-center gap-2 justify-center mb-4">
                         {status === 'waiting' && !expired && <div className="w-16 h-16 bg-green-700 rounded-full flex items-center justify-center"><Icon
                             icon="qlementine-icons:check-tick-16"
                             className="text-white w-10 h-10"
@@ -201,7 +252,7 @@ export default function Result() {
                         <p className="text-gray-500 text-lg font-semibold">
                             {status === 'waiting' && !expired && "You’re Added to the Queue"}
                             {status === 'cancelled' && "Your reservation has been cancelled"}
-                            {status === 'assigned' && <span>Thank you! You can now have a seat at the table{reservationDetails.table_id}.</span>}
+                            {status === 'assigned' && <span><span className='text-2xl'>Thank you!</span> <br /> You can now have a seat <br />at the <span className='font-bold'>Table #{reservationDetails.table_id}</span>.</span>}
                             {status === 'completed' && <span>Thank you for visiting us.</span>}
 
                         </p>
@@ -211,13 +262,14 @@ export default function Result() {
 
 
             {/* Reservation Details Card */}
-            <div className="shadow-lg rounded-2xl p-3 text-center">
+
+            <div className="shadow-lg rounded-2xl p-3 text-center border border-gray-100">
                 <div className="mb-4">
                     <p className="text-orange-600 text-md font-medium mb-1">Queue Reference</p>
                     <p className="text-4xl font-bold text-orange-600">#Q{id}</p>
                 </div>
 
-                {!expired && (
+                {!expired && status == 'waiting' && (
                     <div className='bg-orange-100 rounded-2xl p-2'>
                         <p className="text-md font-semibold text-gray-800">You are in the queue</p>
                         {status === 'waiting' && estimatedTime !== null
@@ -229,9 +281,25 @@ export default function Result() {
 
                     </div>
                 )}
-
                 <div className='p-1'>
                     <hr className='border-gray-100 mt-2' />
+
+                    <div className="flex justify-between">
+                        <p className='font-medium text-gray-600'>Name</p>
+                        <p className='font-medium'>{name || 'N/A'}</p>
+                    </div>
+                    <hr className='border-gray-100 mt-2' />
+
+                </div>
+
+                <div className='p-1'>
+                    <div className="flex justify-between">
+                        <p className='font-medium text-gray-600'>Phone</p>
+                        <p className='font-medium'>{phone || 'N/A'}</p>
+                    </div>
+                    <hr className='border-gray-100 mt-2' />
+                </div>
+                <div className='p-1'>
 
                     <div className="flex justify-between">
                         <p className='font-medium text-gray-600'>Requested Time</p>
@@ -246,26 +314,12 @@ export default function Result() {
                         <p className='font-medium'>{guests_count} People</p>
 
                     </div>
-                    <hr className='border-gray-100 mt-2' />
 
                 </div>
 
-                <div className='p-1'>
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Name</p>
-                        <p className='font-medium'>{name || 'N/A'}</p>
-                    </div>
-                    <hr className='border-gray-100 mt-2' />
 
-                </div>
-
-                <div className='p-1'>
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Phone</p>
-                        <p className='font-medium'>{phone || 'N/A'}</p>
-                    </div>
-                </div>
             </div>
+
 
             {/* Action Button */}
             <div className="mt-3 space-y-3">

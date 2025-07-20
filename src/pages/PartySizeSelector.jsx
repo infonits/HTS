@@ -7,7 +7,7 @@ const PartySizeSelector = () => {
   const navigate = useNavigate();
 
   const increaseCount = () => {
-    if (guestCount < 8) setGuestCount(guestCount + 1);
+    if (guestCount < 16) setGuestCount(guestCount + 1);
   };
 
   const decreaseCount = () => {
@@ -32,7 +32,7 @@ const PartySizeSelector = () => {
         <button onClick={increaseCount} className="w-12 h-12 bg-orange-500 text-white text-2xl rounded-full hover:bg-orange-600 transition">+</button>
       </div>
 
-      <p className="text-md text-gray-400 my-10">Maximum 8 people per reservation</p>
+      <p className="text-md text-gray-400 my-10">Maximum 16 people per reservation</p>
 
       <button
         onClick={handleConfirm}

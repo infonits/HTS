@@ -39,9 +39,20 @@ export default function UserPage() {
                     <Outlet />
                 </div>
 
-                <div className='p-3 shadow-xl rounded-2xl bg-white mb-2'>
-                    Dev by infonits | © 2025
-                    Privacy Policy | v1.0.0
+                <div className='p-3 shadow-xl flex justify-between text-gray-500 rounded-xl bg-white mb-2'>
+                    <span>
+
+                        Dev by <a href="https://www.infonits.io" target='_blank' className='font-semibold'>infonits</a> | © 2025
+                    </span>
+
+                    <span>
+                        <a href="https://www.queuegenix.com/privacy" target='_blank'>
+                            Privacy Policy
+                        </a>
+                        {" "} | <span className='font-semibold'>
+                            v1.0.0
+                        </span>
+                    </span>
                 </div>
             </div>
         </div>
