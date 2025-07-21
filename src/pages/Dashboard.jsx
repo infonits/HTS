@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react/dist/iconify.js';
+import { QRCodeCanvas } from 'qrcode.react';
+import { Link, Outlet } from "react-router-dom";
+import QueueManage from './QueueManage';
+import { useQueue } from '../context/queueContext';
 
 
-const COLOR_OPTIONS = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500',
-    'bg-yellow-500', 'bg-lime-500', 'bg-green-500',
-    'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-purple-500'
-];
 
 /* -------- util -------- */
 const formatTime = (iso) => {
@@ -23,72 +22,27 @@ const formatTime = (iso) => {
 
 /* ===== COMPONENT ===== */
 const Dashboard = () => {
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const appURL = "https://hts-ten.vercel.app/user/";
+    const adminActions = [
+        { label: "Manage Queues", icon: "mdi:queue", color: "bg-blue-100 text-blue-600", to: "/admin/queues" },
+        { label: "Analytics", icon: "mdi:chart-line", color: "bg-purple-100 text-purple-600", to: "/admin/analytics" },
+        { label: "Tables", icon: "mdi:table-furniture", color: "bg-teal-100 text-teal-600", to: "/admin/tables  " },
+    ];
+    const { queues, tables, assigned, setQueues, setAssigned, currentTime, } = useQueue();
 
-    const [queues, setQueues] = useState([]);
-    const [tables, setTables] = useState([]);          // from Supabase
-    const [assigned, setAssigned] = useState([]);
-    const [showAdd, setShowAdd] = useState(false);
-    const [newTable, setNewTable] = useState({ name: '', capacity: 2, color: COLOR_OPTIONS[0] });
 
-    /* ------ fetch today’s queues & tables ------ */
-    useEffect(() => {
-        const today = new Date();
-        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-        const fetchData = async () => {
-            const [{ data: qData }, { data: tData }] = await Promise.all([
-                supabase
-                    .from('queues')
-                    .select('*')
-                    .in('status', ['waiting', 'assigned'])
-                    .gte('created_at', start)
-                    .lt('created_at', end)
-                    .order('created_at'),
-                supabase
-                    .from('tables')
-                    .select('*')
-                    .order('created_at')
-            ]);
 
-            setQueues(qData || []);
-            setTables(tData || []);
 
-            // Assign those with table_id
-            setAssigned((qData || []).filter(q => q.table_id));
-        };
 
-        fetchData();
-
-        const subscription = supabase
-            .channel('queues-realtime')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'queues'
-                },
-                (payload) => {
-                    fetchData(); // Just reload queues on any change
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(subscription);
-        };
-    }, []);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000); // updates every second
-
-        return () => clearInterval(interval); // cleanup on unmount
-    }, []);
-
+    const grouped = useMemo(() => {
+        const g = {};
+        tables.forEach(t => {
+            g[t.capacity] ??= [];
+            g[t.capacity].push(t);
+        });
+        return g;                // {2: [t1,t2], 4: [t3,t4], ...}
+    }, [tables]);
     /* ------ drag helpers ------ */
     const handleDragStart = (e, queue) => e.dataTransfer.setData('text/plain', JSON.stringify(queue));
     const handleDrop = async (e, tableId) => {
@@ -157,181 +111,134 @@ const Dashboard = () => {
     };
 
 
-    /* ------ add table ------ */
-    const saveTable = async () => {
-        const { data, error } = await supabase.from('tables').insert({
-            name: newTable.name,
-            capacity: newTable.capacity,
-            color: newTable.color
-        }).select().single();
-
-        if (!error && data) setTables(prev => [...prev, data]);
-        setShowAdd(false);
-        setNewTable({ name: '', capacity: 2, color: COLOR_OPTIONS[0] });
-    };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-poppins">
+        <div className="h-screen flex flex-col bg-gray-200 font-poppins">
+
             {/* header */}
-            <header className="bg-white p-3 flex justify-between">
+            <header className="bg-orange-500 rounded-xl m-2 text-white py-3 px-8 flex justify-between">
+
                 <h1 className="text-3xl font-bold">Queuegenix</h1>
-                <div className="text-right text-gray-600">
+                <div className="text-right ">
                     <div className="text-lg font-bold">{formatTime(currentTime.toISOString())}</div>
                     <div className="text-base">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
                 </div>
             </header>
 
-            {/* body */}
-            <div className="grid grid-cols-1 md:grid-cols-5">
+            {/* body */}<div className="flex-1 grid grid-cols-1 md:grid-cols-5 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
 
                 {/* stats */}
-                <aside className="bg-white flex flex-col gap-4 px-4 py-6 text-center">
-                    <div className='w-full '>
-                        <div className='w-20 h-20 bg-orange-500 rounded-full mx-auto flex flex-col justify-center text-white items-center'>
-                            <Icon icon="material-symbols:dine-in-sharp" className='h-10 w-10' />
+                <aside className="bg-white flex flex-col justify-between px-6 py-6 border-r border-gray-100 shadow-xl rounded-l-xl text-left">
+                    {/* Top Section */}
+                    <div className="space-y-4">
+                        {/* Brand */}
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="w-20 h-20 bg-orange-500 rounded-full flex justify-center items-center text-white shadow-lg">
+                                <Icon icon="material-symbols:dine-in-sharp" className="h-10 w-10" />
+                            </div>
+                            <p className="text-xl font-extrabold text-gray-800 tracking-wide">Spice House</p>
                         </div>
-                        <p className="text-xl font-semibold">Spice House</p>
+
+                        {/* Stats */}
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between bg-orange-50 border border-orange-200 p-2 rounded-xl shadow-sm">
+                                <span className="text-sm text-gray-700 flex items-center gap-2">
+                                    <Icon icon="mdi:account-group" className="w-5 h-5 text-orange-400" />
+                                    Active Queues
+                                </span>
+                                <span className="text-xl font-bold text-orange-600">{queues.length}</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-green-50 border border-green-200 p-2 rounded-xl shadow-sm">
+                                <span className="text-sm text-gray-700 flex items-center gap-2">
+                                    <Icon icon="mdi:table-chair" className="w-5 h-5 text-green-500" />
+                                    Available Tables
+                                </span>
+                                <span className="text-xl font-bold text-green-600">{tables.length}</span>
+                            </div>
+                        </div>
+
+                        {/* Admin Actions */}
+                        <div className="space-y-1">
+                            {/* Section Label */}
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">
+                                    Admin Controls
+                                </h4>
+                            </div>
+
+                            {/* Action Links */}
+                            <div className="space-y-2">
+                                {adminActions.map((action) => (
+                                    <Link
+                                        to={action.to}
+                                        key={action.label}
+                                        className="group flex items-center gap-3 p-1 rounded-lg border border-gray-200 hover:shadow-md transition duration-200 bg-white w-full text-sm text-gray-800"
+                                    >
+                                        <div className={`p-2 rounded-full ${action.color} group-hover:scale-105 transform transition`}>
+                                            <Icon icon={action.icon} className="w-5 h-5" />
+                                        </div>
+                                        <span className="font-medium">{action.label}</span>
+                                        <Icon
+                                            icon="mdi:chevron-right"
+                                            className="ml-auto text-gray-400 group-hover:translate-x-1 transform transition"
+                                        />
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+
+
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-lg flex justify-between">
-                        <span>Active Queues</span><span className="font-bold text-orange-500">{queues.length}</span>
+
+                    {/* QR Section */}
+                    <div className="mt">
+                        {/* Label */}
+                        <div className="flex items-center gap-2 mb-2">
+                            <Icon icon="mdi:qrcode-scan" className="w-4 h-4 text-gray-500" />
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-100 px-2 py-0.5 rounded-full">
+                                QR Access
+                            </h4>
+                        </div>
+
+                        {/* QR Box */}
+                        <div className="flex flex-col items-center bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                            <div className="bg-gray-50 p-2 rounded-md shadow-inner">
+                                <QRCodeCanvas value={appURL} size={80} />
+                            </div>
+
+                            {/* Icons */}
+                            <div className="flex gap-3 mt-2">
+                                <button
+                                    title="Copy Link"
+                                    onClick={() => navigator.clipboard.writeText(appURL)}
+                                    className="text-gray-500 hover:text-black transition transform hover:scale-105"
+                                >
+                                    <Icon icon="mdi:content-copy" className="w-4 h-4" />
+                                </button>
+                                <a
+                                    href={document.querySelector("canvas")?.toDataURL()}
+                                    download="spice-house-qr.png"
+                                    title="Download QR"
+                                    className="text-gray-500 hover:text-black transition transform hover:scale-105"
+                                >
+                                    <Icon icon="mdi:download" className="w-4 h-4" />
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-lg flex justify-between">
-                        <span>Available Tables</span><span className="font-bold text-green-500">{tables.length}</span>
-                    </div>
+
+
                 </aside>
 
-                {/* queues & tables */}
-                <main className="col-span-4 p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* pending queues */}
-                    <section className="bg-white rounded-lg shadow-sm">
-                        <header className="p-6 border-b border-gray-200">
-                            <h2 className="font-semibold flex items-center space-x-2">
-                                <span className="w-3 h-3 bg-orange-500 rounded-full" /> <span>Pending Queues</span>
-                            </h2>
-                        </header>
-                        <div className="p-6 space-y-4">
-                            {queues
-                                .filter(q => q.table_id === null)
-                                .map(q => (
-                                    <div
-                                        key={q.id}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, q)}
-                                        className="bg-orange-500 text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
-                                    >
-                                        <button className="absolute top-2 right-2" onClick={() => declineQueue(q.id)} title="Decline">
-                                            <Icon icon="material-symbols:close-rounded" className='h-4 w-4' />
-                                        </button>
-                                        <div className="flex justify-between items-center text-base font-medium">
-                                            <div className="flex flex-col">
-                                                <span className="text-lg text-white/60">#Q{q.id}</span> {/* Short ID */}
-                                                <span className="text-white font-semibold">{q.name}</span>
-                                            </div>
-                                            <span className="text-sm text-white/70 flex items-center gap-1">
-                                                <Icon icon="mdi:clock-outline" className="w-4 h-4" />
-                                                {formatTime(q.created_at)}
-                                            </span>
 
-                                        </div>
 
-                                        <div className='flex flex-row gap-3'>
-                                            <div className="flex items-center mt-1 text-base">
-                                                <Icon icon="mdi:account-group" className="w-4 h-4 mr-1" />
-                                                {q.guests_count} People
-                                            </div>
+                <Outlet context={{ handleDrop, handleDragStart, handleDragOver, declineQueue, completeQueue }} />
 
-                                            <div className="text-base mt-1 italic flex justify-left items-center">
-                                                <Icon icon="gg:sand-clock" className='h-4 w-4' />
-                                                {formatDuration(q.created_at)}
-                                            </div>
 
-                                        </div>
 
-                                    </div>
-                                ))}
-                            {queues.length === 0 && <p className="text-gray-400 text-base">No queues for today 🎉</p>}
-                        </div>
-                    </section>
-
-                    {/* table grid */}
-                    <section className="lg:col-span-2 space-y-6">
-                        <div className="flex justify-end">
-                            <button onClick={() => setShowAdd(true)} className="bg-blue-600 text-white px-3 py-1 rounded-md text-base">
-                                + Add Table
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {tables.map(t => (
-                                <div key={t.id} className="bg-white rounded-lg shadow-sm">
-                                    <header className="p-4 border-b border-gray-200 flex items-center space-x-3">
-                                        <div className={`w-3 h-3 ${t.color} rounded-full`} />
-                                        <h3 className="font-semibold">{t.name} ({t.capacity} tables)</h3>
-                                    </header>
-                                    <div
-                                        className={`p-6 min-h-48 border-2 border-dashed rounded-b-lg ${t.color.replace('500', '200')} `}
-                                        onDrop={(e) => handleDrop(e, t.id)}
-                                        onDragOver={handleDragOver}
-                                    >
-                                        {assigned.filter(a => a.table_id === t.id).map(a => (
-                                            <div key={a.id} className="bg-green-800 text-white p-3 rounded-lg mb-3 relative">
-                                                <div className="text-base font-semibold">{a.name} k</div>
-                                                <div className="text-base">{formatTime(a.created_at)}</div>
-                                                <button
-                                                    className="absolute top-2 right-2 text-white"
-                                                    title="Mark completed"
-                                                    onClick={() => completeQueue(a.id)}
-                                                >
-                                                    <Icon icon="mdi:check-circle" className="w-5 h-5 text-white hover:text-green-300 transition" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {assigned.filter(a => a.table_id === t.id).length === 0 && (
-                                            <div className="flex justify-center items-center h-24 text-gray-400">
-                                                Drop queues here
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </main>
             </div>
 
-            {/* add-table modal */}
-            {showAdd && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-80 space-y-4">
-                        <h3 className="text-lg font-semibold">New Table</h3>
-                        <input
-                            type="text" placeholder="Name (e.g. 4-person)"
-                            className="w-full border p-2 rounded"
-                            value={newTable.name}
-                            onChange={e => setNewTable({ ...newTable, name: e.target.value })}
-                        />
-                        <input
-                            type="number" min="1" placeholder="Capacity"
-                            className="w-full border p-2 rounded"
-                            value={newTable.capacity}
-                            onChange={e => setNewTable({ ...newTable, capacity: +e.target.value })}
-                        />
-                        <div className="grid grid-cols-5 gap-2">
-                            {COLOR_OPTIONS.map(c => (
-                                <button
-                                    key={c}
-                                    className={`h-8 rounded ${c} ${newTable.color === c ? 'ring-2 ring-black' : ''}`}
-                                    onClick={() => setNewTable({ ...newTable, color: c })}
-                                />
-                            ))}
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={() => setShowAdd(false)} className="px-3 py-1">Cancel</button>
-                            <button onClick={saveTable} className="bg-blue-600 text-white px-3 py-1 rounded">Save</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };
