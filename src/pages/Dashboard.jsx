@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react/dist/iconify.js';
@@ -30,8 +30,30 @@ const Dashboard = () => {
     ];
     const { queues, tables, assigned, setQueues, setAssigned, currentTime, } = useQueue();
 
+    const [user, setUser] = useState(null);
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        // Get current user
+        supabase.auth.getUser().then(({ data }) => {
+            setUser(data?.user);
+        })
 
 
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+    };
 
 
 
@@ -116,12 +138,49 @@ const Dashboard = () => {
         <div className="h-screen flex flex-col bg-gray-200 font-poppins">
 
             {/* header */}
-            <header className="bg-orange-500 rounded-xl m-2 text-white py-3 px-8 flex justify-between">
-
+            <header className="bg-orange-500 rounded-xl m-2 text-white py-3 px-8 flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Queuegenix</h1>
-                <div className="text-right ">
-                    <div className="text-lg font-bold">{formatTime(currentTime.toISOString())}</div>
-                    <div className="text-base">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
+
+                <div className="flex items-center gap-6">
+                    <div className="text-right hidden sm:block">
+                        <div className="text-lg font-bold">
+                            {formatTime(currentTime.toISOString())}
+                        </div>
+                        <div className="text-base">
+                            {new Date().toLocaleDateString("en-US", {
+                                weekday: "long",
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Profile Dropdown */}
+                    <div className="relative" ref={dropdownRef}>
+                        <button
+                            onClick={() => setOpen((prev) => !prev)}
+                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full"
+                        >
+                            <Icon icon="mdi:account-circle" className="text-white text-2xl" />
+                            <span className="hidden sm:inline font-medium">
+                                {user?.email?.split("@")[0] ?? "User"}
+                            </span>
+                            <Icon icon="mdi:chevron-down" className="text-white text-xl" />
+                        </button>
+
+                        {open && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-md z-10 overflow-hidden text-sm text-gray-700">
+                                <div className="px-4 py-2 border-b">{user?.email}</div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full px-4 py-2 text-left hover:bg-orange-100"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 

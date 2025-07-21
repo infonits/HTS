@@ -14,6 +14,8 @@ import { QueueProvider } from './context/queueContext'
 import QueueManage from './pages/QueueManage'
 import QueueAnalytics from './pages/QueueAnalytics'
 import TableMangement from './pages/TableMangement'
+import LoginPage from './pages/LoginPage'
+import ProtectedRoute from './auth/ProtectedRoutes'
 
 
 
@@ -32,12 +34,22 @@ function App() {
               <Route path="result" element={<Result />} />
               <Route path="vendor" element={<VendorSelectionPage />} />
             </Route>
-            <Route path="/admin" element={<Dashboard />}>
+
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<Navigate to="queues" replace />} />
               <Route path="queues" element={<QueueManage />} />
               <Route path="analytics" element={<QueueAnalytics />} />
               <Route path="tables" element={<TableMangement />} />
             </Route>
+
           </Routes>
         </Router>
       </QueueProvider>
