@@ -12,7 +12,7 @@ const COLOR_OPTIONS = [
 ];
 
 export default function QueueManage() {
-    const [showAdd, setShowAdd] = useState(false);
+
 
     const [newTable, setNewTable] = useState({ name: '', capacity: 2, color: COLOR_OPTIONS[0] });
 
@@ -51,23 +51,11 @@ export default function QueueManage() {
         return mins === 0 ? `${secs}s` : `${mins}m ${secs}s`;
     };
 
-    /* ------ add table ------ */
-    const saveTable = async () => {
-        const { data, error } = await supabase.from('tables').insert({
-            name: newTable.name,
-            capacity: newTable.capacity,
-            color: newTable.color
-        }).select().single();
-
-        if (!error && data) setTables(prev => [...prev, data]);
-        setShowAdd(false);
-        setNewTable({ name: '', capacity: 2, color: COLOR_OPTIONS[0] });
-    };
 
     return (
-        <main className="col-span-4 p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main className="col-span-4 p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 ">
 
-            <section className="bg-white rounded-lg shadow-sm">
+            <section className="bg-white rounded-lg shadow-sm overflow-y-auto max-h-[75vh]">
                 <header className="p-6 border-b border-gray-200">
                     <h2 className="font-semibold flex items-center space-x-2">
                         <span className="w-3 h-3 bg-orange-500 rounded-full" /> <span>Pending Queues</span>
@@ -81,7 +69,7 @@ export default function QueueManage() {
                                 key={q.id}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, q)}
-                                className="bg-orange-500 text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
+                                className="bg-gradient-to-br from-orange-400 to-red-500  text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
                             >
                                 <button className="absolute top-2 right-2" onClick={() => declineQueue(q.id)} title="Decline">
                                     <Icon icon="material-symbols:close-rounded" className='h-4 w-4' />
@@ -118,12 +106,8 @@ export default function QueueManage() {
             </section>
 
             {/* capacity sections */}
-            <section className="lg:col-span-2">
-                <div className="flex justify-end my-3">
-                    <button onClick={() => setShowAdd(true)} className="bg-blue-600 text-white px-3 py-1 rounded-md text-base">
-                        + Add Table
-                    </button>
-                </div>
+            <section className="lg:col-span-2 overflow-y-auto max-h-[75vh]">
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {Object.keys(grouped).sort((a, b) => a - b).map(cap => (
@@ -187,39 +171,6 @@ export default function QueueManage() {
             </section>
 
 
-            {/* add-table modal */}
-            {showAdd && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-80 space-y-4">
-                        <h3 className="text-lg font-semibold">New Table</h3>
-                        <input
-                            type="text" placeholder="Name (e.g. 4-person)"
-                            className="w-full border p-2 rounded"
-                            value={newTable.name}
-                            onChange={e => setNewTable({ ...newTable, name: e.target.value })}
-                        />
-                        <input
-                            type="number" min="1" placeholder="Capacity"
-                            className="w-full border p-2 rounded"
-                            value={newTable.capacity}
-                            onChange={e => setNewTable({ ...newTable, capacity: +e.target.value })}
-                        />
-                        <div className="grid grid-cols-5 gap-2">
-                            {COLOR_OPTIONS.map(c => (
-                                <button
-                                    key={c}
-                                    className={`h-8 rounded ${c} ${newTable.color === c ? 'ring-2 ring-black' : ''}`}
-                                    onClick={() => setNewTable({ ...newTable, color: c })}
-                                />
-                            ))}
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={() => setShowAdd(false)} className="px-3 py-1">Cancel</button>
-                            <button onClick={saveTable} className="bg-blue-600 text-white px-3 py-1 rounded">Save</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </main>
     )
 }

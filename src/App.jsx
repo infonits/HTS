@@ -16,6 +16,7 @@ import QueueAnalytics from './pages/QueueAnalytics'
 import TableMangement from './pages/TableMangement'
 import LoginPage from './pages/LoginPage'
 import ProtectedRoute from './auth/ProtectedRoutes'
+import MyAccount from './pages/MyAccount'
 
 
 
@@ -46,6 +47,7 @@ function App() {
             >
               <Route index element={<Navigate to="queues" replace />} />
               <Route path="queues" element={<QueueManage />} />
+              <Route path="account" element={<MyAccount />} />
               <Route path="analytics" element={<QueueAnalytics />} />
               <Route path="tables" element={<TableMangement />} />
             </Route>
