@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react';
 import { useQueue } from '../context/queueContext';
-import { useOutletContext } from 'react-router-dom';
 
 const COLOR_OPTIONS = [
     'bg-red-500', 'bg-orange-500', 'bg-amber-500',
@@ -31,7 +30,6 @@ export default function QueueManage() {
         });
         return g;
     }, [tables]);
-    const { handleDrop, handleDragStart, handleDragOver, declineQueue, completeQueue } = useOutletContext();
 
 
 
@@ -50,10 +48,64 @@ export default function QueueManage() {
         const secs = diff % 60;
         return mins === 0 ? `${secs}s` : `${mins}m ${secs}s`;
     };
+    const handleDragStart = (e, queue) => {
+        e.dataTransfer.setData('application/json', JSON.stringify(queue));
+    };
+    const handleDragOver = (e) => e.preventDefault();
 
 
+    const handleDrop = async (e, tableId) => {
+        e.preventDefault();
+        const queue = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+        // Remove from UI
+        setQueues(prev => prev.filter(q => q.id !== queue.id));
+
+        // Add to assigned (optimistic UI)
+        const updatedQueue = { ...queue, table_id: tableId };
+        setAssigned(prev => [...prev, updatedQueue]);
+
+        // Update in Supabase
+        const { error } = await supabase
+            .from('queues')
+            .update({ table_id: tableId, status: 'assigned' })
+            .eq('id', queue.id);
+
+        if (error) {
+            console.error('Failed to update queue table_id:', error);
+            // Optional: Revert UI changes if needed
+        }
+    };
+    const declineQueue = async (id) => {
+        // Optimistic update: remove from UI
+        setQueues(prev => prev.filter(q => q.id !== id));
+
+        // Update status in Supabase
+        const { error } = await supabase
+            .from('queues')
+            .update({ status: 'cancelled' })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Failed to cancel queue:', error);
+            // Optional: restore in UI
+        }
+    };
+    const completeQueue = async (id) => {
+        setAssigned(prev => prev.filter(q => q.id !== id));
+
+        const { error } = await supabase
+            .from('queues')
+            .update({ status: 'completed' })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Failed to complete queue:', error);
+            // Optional: restore in UI
+        }
+    };
     return (
-        <main className="col-span-4 p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 ">
+        <main className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-8 ">
 
             <section className="bg-white rounded-lg shadow-sm overflow-y-auto max-h-[75vh]">
                 <header className="p-6 border-b border-gray-200">
@@ -106,7 +158,7 @@ export default function QueueManage() {
             </section>
 
             {/* capacity sections */}
-            <section className="lg:col-span-2 overflow-y-auto max-h-[75vh]">
+            <section className="lg:col-span-3 overflow-y-auto max-h-[75vh]">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 

@@ -4,7 +4,6 @@ import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react/dist/iconify.js';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Link, Outlet } from "react-router-dom";
-import QueueManage from './QueueManage';
 import { useQueue } from '../context/queueContext';
 
 
@@ -24,8 +23,8 @@ const formatTime = (iso) => {
 const Dashboard = () => {
     const appURL = "https://hts-ten.vercel.app/user/";
     const adminActions = [
-        { label: "Manage Queues", icon: "mdi:queue", color: "bg-blue-100 text-blue-600", to: "/admin/queues" },
-        { label: "Analytics", icon: "mdi:chart-line", color: "bg-purple-100 text-purple-600", to: "/admin/analytics" },
+        { label: "Manage Queues", icon: "mdi:cog", color: "bg-blue-100 text-blue-600", to: "/admin/queues" },
+        { label: "Analytics", icon: "mdi:chart-bar", color: "bg-purple-100 text-purple-600", to: "/admin/analytics" },
         { label: "Tables", icon: "mdi:table-furniture", color: "bg-teal-100 text-teal-600", to: "/admin/tables  " },
     ];
     const { queues, tables, assigned, setQueues, setAssigned, currentTime, } = useQueue();
@@ -65,52 +64,7 @@ const Dashboard = () => {
         });
         return g;                // {2: [t1,t2], 4: [t3,t4], ...}
     }, [tables]);
-    /* ------ drag helpers ------ */
-    const handleDragStart = (e, queue) => {
-        e.dataTransfer.setData('application/json', JSON.stringify(queue));
-    };
 
-    const handleDrop = async (e, tableId) => {
-        e.preventDefault();
-        const queue = JSON.parse(e.dataTransfer.getData('text/plain'));
-
-        // Remove from UI
-        setQueues(prev => prev.filter(q => q.id !== queue.id));
-
-        // Add to assigned (optimistic UI)
-        const updatedQueue = { ...queue, table_id: tableId };
-        setAssigned(prev => [...prev, updatedQueue]);
-
-        // Update in Supabase
-        const { error } = await supabase
-            .from('queues')
-            .update({ table_id: tableId, status: 'assigned' })
-            .eq('id', queue.id);
-
-        if (error) {
-            console.error('Failed to update queue table_id:', error);
-            // Optional: Revert UI changes if needed
-        }
-    };
-
-    const handleDragOver = (e) => e.preventDefault();
-
-    /* ------ decline queue ------ */
-    const declineQueue = async (id) => {
-        // Optimistic update: remove from UI
-        setQueues(prev => prev.filter(q => q.id !== id));
-
-        // Update status in Supabase
-        const { error } = await supabase
-            .from('queues')
-            .update({ status: 'cancelled' })
-            .eq('id', id);
-
-        if (error) {
-            console.error('Failed to cancel queue:', error);
-            // Optional: restore in UI
-        }
-    };
     const formatDuration = (startTime) => {
         const created = new Date(startTime);
         const diff = Math.floor((currentTime - created) / 1000); // in seconds
@@ -121,19 +75,7 @@ const Dashboard = () => {
         if (mins === 0) return `${secs}s`;
         return `${mins}m ${secs}s`;
     };
-    const completeQueue = async (id) => {
-        setAssigned(prev => prev.filter(q => q.id !== id));
 
-        const { error } = await supabase
-            .from('queues')
-            .update({ status: 'completed' })
-            .eq('id', id);
-
-        if (error) {
-            console.error('Failed to complete queue:', error);
-            // Optional: restore in UI
-        }
-    };
 
 
 
@@ -202,11 +144,10 @@ const Dashboard = () => {
                     </div>
                 </div>
             </header>
-
-            {/* body */}<div className="flex-1 grid grid-cols-1 md:grid-cols-5 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-6 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
 
                 {/* stats */}
-                <aside className="bg-white flex flex-col justify-between px-6 py-6 border-r border-gray-100 shadow-xl rounded-l-xl text-left">
+                <aside className="bg-white flex flex-col justify-between px-6 py-6 border-r border-gray-100 shadow-xl rounded-l-xl text-left max-h-[90vh]">
                     {/* Top Section */}
                     <div className="space-y-4">
                         {/* Brand */}
@@ -241,60 +182,36 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <hr />
+                        <hr class="border-gray-200" />
 
                         {/* Admin Actions */}
                         <div className="space-y-1">
                             {/* Section Label */}
-                            <div className="flex items-center justify-between">
+                            <h2 className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-6">
                                 Admin Controls
-                            </div>
+                            </h2>
 
                             {/* Action Links */}
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 {adminActions.map((action) => (
                                     <Link
                                         to={action.to}
                                         key={action.label}
-                                        className="group flex items-center gap-3 p-1 rounded-lg border border-gray-200 hover:shadow-md transition duration-200 bg-white w-full text-sm text-gray-800"
+                                        className="group flex items-center gap-3 p-1   transition duration-200 bg-white w-full text-sm text-gray-800"
                                     >
-                                        <div className={`p-2 rounded-full ${action.color} group-hover:scale-105 transform transition`}>
-                                            <Icon icon={action.icon} className="w-5 h-5" />
-                                        </div>
-                                        <span className="font-medium">{action.label}</span>
-                                        <Icon
-                                            icon="mdi:chevron-right"
-                                            className="ml-auto text-gray-400 group-hover:translate-x-1 transform transition"
-                                        />
+
                                         <div className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors">
-                                            <Icon icon="mdi:cog" className="w-5 h-5" />
-                                            <span className="text-base font-medium">Manage Queues</span>
+                                            <Icon icon={action.icon} className="w-5 h-5" />
+                                            <span className="text-base font-medium">{action.label}</span>
                                         </div>
                                     </Link>
                                 ))}
                             </div>
                         </div>
                         <div >
-                            <h2 className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-6">
-                                Admin Controls
-                            </h2>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors">
-                                    <Icon icon="mdi:cog" className="w-5 h-5" />
-                                    <span className="text-base font-medium">Manage Queues</span>
-                                </div>
 
-                                <div className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors">
-                                    <Icon icon="mdi:chart-bar" className="w-5 h-5" />
-                                    <span className="text-base font-medium">Analytics</span>
-                                </div>
 
-                                <div className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 cursor-pointer transition-colors">
-                                    <Icon icon="mdi:grid" className="w-5 h-5" />
-                                    <span className="text-base font-medium">Tables</span>
-                                </div>
-                            </div>
                         </div>
 
                     </div>
@@ -331,7 +248,6 @@ const Dashboard = () => {
                                 </a>
                             </div>
                         </div>
-                        <div>Here</div>
                     </div>
 
 
@@ -339,8 +255,10 @@ const Dashboard = () => {
                 </aside>
 
 
+                <div className=' md:col-span-5'>
 
-                <Outlet context={{ handleDrop, handleDragStart, handleDragOver, declineQueue, completeQueue }} />
+                    <Outlet />
+                </div>
 
 
 
