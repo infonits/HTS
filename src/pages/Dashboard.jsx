@@ -80,7 +80,8 @@ const Dashboard = () => {
 
 
     return (
-        <div className="h-screen flex flex-col bg-gray-200 font-poppins">
+        <div className="h-screen flex flex-col bg-gray-200 font-poppins overflow-hidden">
+
 
             {/* header */}
             <header className="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-3 px-8 flex justify-between items-center">
@@ -144,21 +145,25 @@ const Dashboard = () => {
                     </div>
                 </div>
             </header>
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-6 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1  md:grid-cols-3 lg:grid-cols-4 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
 
                 {/* stats */}
                 <aside className="bg-white flex flex-col justify-between px-6 py-6 border-r border-gray-100 shadow-xl rounded-l-xl text-left max-h-[90vh]">
                     {/* Top Section */}
                     <div className="space-y-4">
                         {/* Brand */}
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500  rounded-2xl flex justify-center items-center text-white shadow-lg">
+                        <div className="flex flex-row items-center gap-2">
+                            <div className="w-15 h-15 bg-gradient-to-br from-orange-400 to-red-500  rounded-2xl flex justify-center items-center text-white shadow-lg">
                                 <Icon icon="material-symbols:dine-in-sharp" className="h-10 w-10" />
                             </div>
-                            <p className="text-xl font-extrabold text-gray-800 tracking-wide">Spice House</p>
+                            <div>
+
+                                <p className="text-xl font-extrabold text-gray-800 tracking-wide">Spice House</p>
+                                <p className="text-sm text-gray-700">Restaurant Management                                </p>
+                            </div>
                         </div>
                         {/* Stats */}
-                        <div className="flex flex-col lg:flex-row gap-4">
+                        <div className="flex flex-col md:flex-row lg:flex-row gap-4">
                             {/* Active Queues */}
                             <div className="flex-1 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-3 rounded-xl shadow-sm">
                                 <div className="flex items-center gap-2 text-gray-700">
@@ -182,7 +187,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <hr class="border-gray-200" />
+                        <hr className="border-gray-200" />
 
                         {/* Admin Actions */}
                         <div className="space-y-1">
@@ -255,7 +260,7 @@ const Dashboard = () => {
                 </aside>
 
 
-                <div className=' md:col-span-5'>
+                <div className=' md:col-span-2 lg:col-span-3'>
 
                     <Outlet />
                 </div>

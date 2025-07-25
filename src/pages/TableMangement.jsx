@@ -39,13 +39,17 @@ export default function TableManagement() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("Submit clicked. Editing ID:", editingId, "Form:", form);
+
         if (!form.name || !form.capacity || !form.color) return;
 
         let result;
         if (editingId) {
-            result = await supabase.from('tables').update(form).eq('id', editingId);
+            result = await supabase.from('tables').update(form).eq('id', editingId).select();
+            console.log("Update Result:", result);
         } else {
-            result = await supabase.from('tables').insert({ ...form });
+            result = await supabase.from('tables').insert({ ...form }).select();
+            console.log("Insert Result:", result);
         }
 
         if (result.error) {

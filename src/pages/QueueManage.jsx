@@ -20,6 +20,8 @@ export default function QueueManage() {
         tables,
         assigned,
         currentTime,
+        setQueues,
+        setAssigned
     } = useQueue();
 
     const grouped = useMemo(() => {
@@ -51,12 +53,15 @@ export default function QueueManage() {
     const handleDragStart = (e, queue) => {
         e.dataTransfer.setData('application/json', JSON.stringify(queue));
     };
-    const handleDragOver = (e) => e.preventDefault();
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
 
 
     const handleDrop = async (e, tableId) => {
         e.preventDefault();
-        const queue = JSON.parse(e.dataTransfer.getData('text/plain'));
+        // const queue = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const queue = JSON.parse(e.dataTransfer.getData('application/json'));
 
         // Remove from UI
         setQueues(prev => prev.filter(q => q.id !== queue.id));
@@ -105,7 +110,8 @@ export default function QueueManage() {
         }
     };
     return (
-        <main className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-8 ">
+        <main className="min-h-full p-6 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-8">
+
 
             <section className="bg-white rounded-lg shadow-sm overflow-y-auto max-h-[75vh]">
                 <header className="p-6 border-b border-gray-200">
@@ -121,12 +127,13 @@ export default function QueueManage() {
                                 key={q.id}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, q)}
+
                                 className="bg-gradient-to-br from-orange-400 to-red-500  text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
                             >
                                 <button className="absolute top-2 right-2" onClick={() => declineQueue(q.id)} title="Decline">
                                     <Icon icon="material-symbols:close-rounded" className='h-4 w-4' />
                                 </button>
-                                <div className="flex justify-between items-center text-base font-medium">
+                                <div className="flex lg:flex-row flex-col  justify-between items-center text-base font-medium">
                                     <div className="flex flex-col">
                                         <span className="text-lg text-white/60">#Q{q.id}</span> {/* Short ID */}
                                         <span className="text-white font-semibold">{q.name}</span>
@@ -138,7 +145,7 @@ export default function QueueManage() {
 
                                 </div>
 
-                                <div className='flex flex-row gap-3'>
+                                <div className='flex lg:flex-row flex-col  gap-3'>
                                     <div className="flex items-center mt-1 text-base">
                                         <Icon icon="mdi:account-group" className="w-4 h-4 mr-1" />
                                         {q.guests_count} People
@@ -158,7 +165,7 @@ export default function QueueManage() {
             </section>
 
             {/* capacity sections */}
-            <section className="lg:col-span-3 overflow-y-auto max-h-[75vh]">
+            <section className="md:col-span-2 xl:col-span-3 overflow-y-auto max-h-[75vh]">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -173,7 +180,7 @@ export default function QueueManage() {
                             </header>
 
                             {/* ── table boxes ── */}
-                            <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="p-4 grid md:grid-cols-1 lg:grid-cols-2  xl:grid-cols-3 gap-4">
                                 {grouped[cap].map(tbl => {
                                     const occupied = assigned.find(a => a.table_id === tbl.id);
                                     return (
@@ -181,14 +188,15 @@ export default function QueueManage() {
                                             key={tbl.id}
                                             onDrop={e => !occupied && handleDrop(e, tbl.id)}
                                             onDragOver={handleDragOver}
+
                                             className={`relative rounded-lg text-center h-20 flex items-center justify-center
                          border-2 border-dashed ${tbl.color.replace('500', '300')}
                          ${occupied ? tbl.color : 'bg-gray-50'} transition`}
                                         >
                                             {/* empty slot */}
                                             {!occupied && (
-                                                <span className="text-gray-400 text-sm select-none">
-                                                    Table {tbl.name}
+                                                <span className=" text-gray-400 text-sm select-none text-center">
+                                                    Table {tbl.name}
                                                 </span>
                                             )}
 
