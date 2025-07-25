@@ -36,7 +36,7 @@ const PartySizeSelector = () => {
 
       <button
         onClick={handleConfirm}
-        className="bg-orange-500 text-white text-lg font-medium py-2.5 px-4 w-full rounded-lg hover:bg-orange-600 transition"
+        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-white text-lg font-medium py-2.5 px-4 w-full rounded-lg transition"
       >
         Confirm Selection
       </button>

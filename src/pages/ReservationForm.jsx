@@ -128,7 +128,7 @@ const ReservationForm = () => {
                 )}
                 <button
                     type="submit"
-                    className="bg-orange-500 text-white py-2.5 w-full rounded-lg hover:bg-orange-600 transition text-lg font-medium"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2.5 w-full rounded-lg  transition text-lg font-medium"
                 >
                     Confirm Reservation
                 </button>

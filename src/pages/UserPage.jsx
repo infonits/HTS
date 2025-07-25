@@ -13,7 +13,7 @@ export default function UserPage() {
             <div className=" w-full sm:max-w-sm   text-center">
 
                 {/* Sticky Top Nav */}
-                <div className=" bg-orange-500 text-white shadow-sm border-b border-gray-100 my-2 shadow-xl rounded-2xl">
+                <div className=" bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm border-b border-gray-100 my-2 shadow-xl rounded-2xl">
                     <div className="flex items-center justify-between px-4 py-3">
                         <button
                             onClick={handleBack}
