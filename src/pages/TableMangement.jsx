@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react';
 const COLOR_OPTIONS = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500',
-    'bg-yellow-500', 'bg-lime-500', 'bg-green-500',
+    'bg-lime-500', 'bg-green-500',
     'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
     'bg-purple-500'
 ];

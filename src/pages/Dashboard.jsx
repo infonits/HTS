@@ -162,6 +162,8 @@ const Dashboard = () => {
                                 <p className="text-sm text-gray-700">Restaurant Management                                </p>
                             </div>
                         </div>
+                        <hr className="border-gray-200" />
+
                         {/* Stats */}
                         <div className="flex flex-col md:flex-row lg:flex-row gap-2">
                             {/* Active Queues */}

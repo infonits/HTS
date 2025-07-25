@@ -83,7 +83,7 @@ const ReservationForm = () => {
                     value={guestDetails[field]}
                     onChange={handleChange}
                     placeholder={placeholder}
-                    className="bg-transparent w-full outline-none text-md"
+                    className="bg-transparent w-full outline-none text-md focus:ring-orange-500"
                     required
                 />
             </div>

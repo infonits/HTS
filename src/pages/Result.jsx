@@ -29,7 +29,7 @@ export default function Result() {
         const fetchReservation = async () => {
             const { data, error } = await supabase
                 .from('queues')
-                .select('*')
+                .select('*,tables(*)')
                 .eq('id', reservationId)
                 .single();
 
@@ -240,7 +240,7 @@ export default function Result() {
                                     className="text-white w-6 h-6"
                                 />
                                 <span className="text-white text-xl font-semibold">
-                                    Table #{reservationDetails.table_id}
+                                    {reservationDetails?.tables?.name}
                                 </span>
                             </div>
                         </div>
@@ -252,7 +252,7 @@ export default function Result() {
                         <p className="text-gray-500 text-lg font-semibold">
                             {status === 'waiting' && !expired && "You’re Added to the Queue"}
                             {status === 'cancelled' && "Your reservation has been cancelled"}
-                            {status === 'assigned' && <span><span className='text-2xl'>Thank you!</span> <br /> You can now have a seat <br />at the <span className='font-bold'>Table #{reservationDetails.table_id}</span>.</span>}
+                            {status === 'assigned' && <span><span className='text-2xl'>Thank you!</span> <br /> You can now have a seat <br />at the <span className='font-bold'>Table {reservationDetails?.tables?.name}</span>.</span>}
                             {status === 'completed' && <span>Thank you for visiting us.</span>}
 
                         </p>

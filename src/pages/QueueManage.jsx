@@ -172,7 +172,7 @@ export default function QueueManage() {
                     {Object.keys(grouped).sort((a, b) => a - b).map(cap => (
                         <div key={cap} className="bg-white rounded-lg shadow-sm">
                             {/* ── header row ── */}
-                            <header className="p-3 bg-orange-50 flex justify-between items-center">
+                            <header className="p-3 bg-slate-200 flex justify-between items-center">
                                 <h3 className="font-semibold text-lg">{cap}-Seater Tables</h3>
                                 <span className="text-sm text-gray-500">
                                     {grouped[cap].length} tables
