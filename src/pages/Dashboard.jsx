@@ -145,10 +145,10 @@ const Dashboard = () => {
                     </div>
                 </div>
             </header>
-            <div className="flex-1 grid grid-cols-1  md:grid-cols-3 lg:grid-cols-4 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1  md:grid-cols-3 lg:grid-cols-5 bg-gray-50 rounded-xl shadow-sm border border-gray-100 m-2 overflow-hidden">
 
                 {/* stats */}
-                <aside className="bg-white flex flex-col justify-between px-6 py-6 border-r border-gray-100 shadow-xl rounded-l-xl text-left max-h-[90vh]">
+                <aside className="bg-white flex flex-col justify-between p-4 border-r border-gray-100 shadow-xl rounded-l-xl text-left max-h-[90vh] ">
                     {/* Top Section */}
                     <div className="space-y-4">
                         {/* Brand */}
@@ -163,7 +163,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                         {/* Stats */}
-                        <div className="flex flex-col md:flex-row lg:flex-row gap-4">
+                        <div className="flex flex-col md:flex-row lg:flex-row gap-2">
                             {/* Active Queues */}
                             <div className="flex-1 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-3 rounded-xl shadow-sm">
                                 <div className="flex items-center gap-2 text-gray-700">
@@ -226,7 +226,7 @@ const Dashboard = () => {
                         <hr className='mb-5 border-orange-100' />
 
                         {/* QR Row */}
-                        <div className="flex items-center justify-between  p-1 w-full  ">
+                        <div className="flex items-center   p-1 w-full  ">
                             {/* QR Code */}
                             <div className="p-2 bg-gray-50 rounded-md border border-dashed border-orange-300 shadow-inner">
                                 <QRCodeCanvas value={appURL} size={80} />
@@ -260,7 +260,7 @@ const Dashboard = () => {
                 </aside>
 
 
-                <div className=' md:col-span-2 lg:col-span-3'>
+                <div className=' md:col-span-2 lg:col-span-4'>
 
                     <Outlet />
                 </div>
