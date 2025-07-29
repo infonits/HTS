@@ -205,7 +205,7 @@ export default function QueueAnalytics() {
     ];
 
     return (
-        <main className="col-span-4 p-6 grid grid-cols-1 gap-8 overflow-y-auto">
+        <main className="col-span-4 p-6 grid grid-cols-1 gap-8 overflow-y-auto max-h-[85vh]">
             <section className="bg-white rounded-lg shadow-sm">
                 <header className="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h2 className="font-semibold flex items-center space-x-2">
