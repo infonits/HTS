@@ -58,11 +58,20 @@ export default function Result() {
                     table: 'queues',
                     filter: `id=eq.${reservationId}`
                 },
-                (payload) => {
-                    console.log("🔁 Realtime update received:", payload.new);
-                    setReservationDetails(payload.new);
+                async () => {
+                    console.log("🔁 Realtime update received");
+                    const { data, error } = await supabase
+                        .from('queues')
+                        .select('*, tables(*)')
+                        .eq('id', reservationId)
+                        .single();
 
+                    if (error) {
+                        console.error("Error refetching after update:", error);
+                        return;
+                    }
 
+                    setReservationDetails(data);
                 }
             ).on(
                 'postgres_changes',
