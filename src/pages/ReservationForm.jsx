@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useGuest } from '../context/guestContext'; // adjust path as needed
 import { supabase } from '../supabaseClient';
 import { useAdminAuth } from '../context/adminAuthContext';
+import FancyInput from '../../component/FancyInput';
 
 const ReservationForm = () => {
     const { guestDetails, setGuestDetails, guestCount, saveReservationId, restDetails } = useGuest();
     const [errors, setErrors] = useState({});
+    const [focusedField, setFocusedField] = useState('');
 
     const navigate = useNavigate();
 
@@ -112,24 +114,45 @@ const ReservationForm = () => {
             </p>
 
             <div className="w-full space-y-2 text-left">
-                {inputWrapper(
-                    'name',
-                    'lucide:user',
-                    'text',
-                    'Enter your full name'
-                )}
-                {inputWrapper(
-                    'phone',
-                    'lucide:phone',
-                    'tel',
-                    'Enter your phone number'
-                )}
-                {inputWrapper(
-                    'email',
-                    'lucide:mail',
-                    'email',
-                    'Enter your email address'
-                )}
+                <FancyInput
+                    field="name"
+                    label="Full Name"
+                    icon="lucide:user"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={guestDetails.name}
+                    onChange={handleChange}
+                    error={errors.name}
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                />
+
+                <FancyInput
+                    field="phone"
+                    label="Phone Number"
+                    icon="lucide:phone"
+                    type="tel"
+                    placeholder="+94 77 123 4567"
+                    value={guestDetails.phone}
+                    onChange={handleChange}
+                    error={errors.phone}
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                />
+
+                <FancyInput
+                    field="email"
+                    label="Email"
+                    icon="lucide:mail"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={guestDetails.email}
+                    onChange={handleChange}
+                    error={errors.email}
+                    focusedField={focusedField}
+                    setFocusedField={setFocusedField}
+                />
+
                 <button
                     type="submit"
                     className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2.5 w-full rounded-lg  transition text-lg font-medium"
@@ -138,7 +161,7 @@ const ReservationForm = () => {
                 </button>
             </div>
 
-            <p className="mt-6 flex items-center justify-center text-sm md:text-md text-gray-700 bg-orange-50  gap-2 py-2 rounded-lg">
+            <p className="mt-6 flex items-center justify-center  text-md text-gray-700 bg-orange-50 gap-2 py-2 rounded-lg">
                 <Icon
                     icon="zondicons:exclamation-solid"
                     className="text-orange-500 w-4 h-4"

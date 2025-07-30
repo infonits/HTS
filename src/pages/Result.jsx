@@ -3,52 +3,49 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGuest } from '../context/guestContext';
 import { supabase } from '../supabaseClient';
-import dayjs from 'dayjs'; // npm install dayjs
+import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { useAdminAuth } from '../context/adminAuthContext';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 
 export default function Result() {
-    const [show, setShow] = useState(false);
-    const { reservationId, restDetails } = useGuest();
     const [reservationDetails, setReservationDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
     const [position, setPosition] = useState(null);
     const [estimatedTime, setEstimatedTime] = useState(null);
 
+    const { reservationId, restDetails } = useGuest();
     const navigate = useNavigate();
 
+    /** ----------------------
+     * Fetch reservation + subscribe to realtime updates
+     ----------------------- */
     useEffect(() => {
         if (!reservationId) return;
 
         const fetchReservation = async () => {
             const { data, error } = await supabase
                 .from('queues')
-                .select('*,tables(*)')
+                .select('*, tables(*)')
                 .eq('id', reservationId)
                 .single();
 
             if (error || !data) {
-                console.error("Error fetching reservation:", error);
                 setErrorMsg("No reservation found for this ID.");
-                setLoading(false);
             } else {
                 setReservationDetails(data);
                 await fetchQueuePosition();
-
-                setLoading(false);
             }
+            setLoading(false);
         };
 
         fetchReservation();
 
-        // Realtime subscription
         const subscription = supabase
             .channel('reservation-updates')
             .on(
@@ -57,117 +54,97 @@ export default function Result() {
                     event: 'UPDATE',
                     schema: 'public',
                     table: 'queues',
-                    filter: `id=eq.${reservationId}`
+                    filter: `id=eq.${reservationId}`,
                 },
                 async () => {
-                    console.log("🔁 Realtime update received");
                     const { data, error } = await supabase
                         .from('queues')
                         .select('*, tables(*)')
                         .eq('id', reservationId)
                         .single();
 
-                    if (error) {
-                        console.error("Error refetching after update:", error);
-                        return;
-                    }
-
-                    setReservationDetails(data);
+                    if (!error) setReservationDetails(data);
                 }
-            ).on(
+            )
+            .on(
                 'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'queues',
-                },
+                { event: 'UPDATE', schema: 'public', table: 'queues' },
                 async () => {
-                    console.log("📦 Another reservation changed");
-                    await fetchQueuePosition(); // recalculate even if others change
+                    await fetchQueuePosition();
                 }
-            ).subscribe();
+            )
+            .subscribe();
 
         return () => {
             supabase.removeChannel(subscription);
         };
     }, [reservationId]);
 
+    /** ----------------------
+     * Warn user before leaving if still waiting
+     ----------------------- */
     useEffect(() => {
         const handleBeforeUnload = (e) => {
-            // 👇 Only trigger if still waiting
             if (reservationDetails?.status === 'waiting') {
                 e.preventDefault();
-                e.returnValue = ''; // Required for Chrome/Edge
+                e.returnValue = '';
             }
         };
 
-        // Add only if 'waiting'
         if (reservationDetails?.status === 'waiting') {
             window.addEventListener('beforeunload', handleBeforeUnload);
         }
 
-        // Cleanup
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [reservationDetails?.status]);
 
-
-
+    /** ----------------------
+     * Handle cancel/back home
+     ----------------------- */
     const handleBackHome = async () => {
-        // Only show confirm if still in waiting status
         if (reservationDetails?.status === 'waiting') {
-            const confirmed = window.confirm("You're already in queue. Are you sure you want to cancel this?");
-
+            const confirmed = window.confirm(
+                "You're already in queue. Are you sure you want to cancel this?"
+            );
             if (!confirmed) return;
 
-            const { error } = await supabase
+            await supabase
                 .from('queues')
                 .update({ status: 'cancelled' })
                 .eq('id', reservationId);
-
-            if (error) {
-                console.error("Failed to cancel reservation:", error.message);
-            }
         }
 
-        localStorage.removeItem("reservationId");
+        localStorage.removeItem('reservationId');
         navigate(`/rest/${restDetails.slug}`);
     };
 
-
-
-    const formatTime = (timeStr) => {
-        return dayjs(timeStr).format('hh:mm A');
-    };
+    /** ----------------------
+     * Helpers
+     ----------------------- */
+    const formatTime = (timeStr) => dayjs(timeStr).format('hh:mm A');
 
     const isTodayOrLateNight = (createdAt) => {
         const created = dayjs.utc(createdAt).tz('Asia/Colombo');
         const now = dayjs().tz('Asia/Colombo');
 
-
-
         // Allow until 3 AM next day for 11:59 PM bookings
-        if (created.format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
-            console.log('checked ');
-
-            return true;
-        }
+        if (created.isSame(now, 'day')) return true;
         if (
-            created.format('YYYY-MM-DD') === now.subtract(1, 'day').format('YYYY-MM-DD') &&
+            created.isSame(now.subtract(1, 'day'), 'day') &&
             created.hour() === 23 &&
             now.hour() <= 3
-        ) {
+        )
             return true;
-        }
+
         return false;
     };
+
     const fetchQueuePosition = async () => {
         if (!reservationId) return;
-        // console.log("Queue list:", data, "Your ID:", reservationId);
 
         const today = dayjs().startOf('day').toISOString();
-
         const { data, error } = await supabase
             .from('queues')
             .select('*')
@@ -175,168 +152,156 @@ export default function Result() {
             .gte('created_at', today)
             .order('created_at', { ascending: true });
 
-        if (error) {
-            console.error('Error fetching waiting queues:', error);
-            return;
-        }
+        if (error) return;
 
-        const index = data.findIndex(q => q.id === reservationId);
-
+        const index = data.findIndex((q) => q.id === reservationId);
         if (index === -1) {
-            setEstimatedTime(null); // Or maybe "Already served" or "Table assigned"
             setPosition(null);
-            return;
+            setEstimatedTime(null);
+        } else {
+            setPosition(index + 1);
+            setEstimatedTime((index + 1) * 10);
         }
-
-        setPosition(index + 1);
-        setEstimatedTime((index + 1) * 10);
-
     };
-    if (loading) {
-        return <div className="text-center mt-10 text-gray-500">Loading your reservation details...</div>;
-    }
 
-    if (errorMsg) {
+    /** ----------------------
+     * Render States
+     ----------------------- */
+    if (loading)
+        return <div className="text-center mt-10 text-gray-500">Loading reservation...</div>;
+    if (errorMsg)
         return <div className="text-center mt-10 text-red-500">{errorMsg}</div>;
-    }
-
-    if (!reservationDetails) {
+    if (!reservationDetails)
         return <div className="text-center mt-10 text-red-500">Something went wrong.</div>;
-    }
 
-    const {
-        id,
-        created_at,
-        guests_count,
-        name,
-        phone,
-        status
-    } = reservationDetails;
-
+    const { id, created_at, guests_count, name, phone, status } = reservationDetails;
     const expired = !isTodayOrLateNight(created_at);
 
+    /** ----------------------
+     * UI Rendering
+     ----------------------- */
     return (
-        <div className='w-full'>
-            {/* Success Icon */}
-
-
-
-
-            {expired ? (
-                <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 shadow-sm mb-2">
-                    <Icon
-                        icon="heroicons-solid:exclamation"
-                        className="h-6 w-6 shrink-0 text-red-600"
-                    />
-                    <p className="text-sm font-medium text-red-700">
-                        This reservation has expired
-                    </p>
-                </div>
-            ) : (
-                <div>
-                    <div className="flex flex-col items-center gap-2 justify-center mb-4">
-                        {status === 'waiting' && !expired && <div className="w-16 h-16 bg-green-700 rounded-full flex items-center justify-center"><Icon
-                            icon="qlementine-icons:check-tick-16"
-                            className="text-white w-10 h-10"
-                        /></div>}
-                        {status === 'cancelled' && <div className="w-16 h-16 bg-red-700 rounded-full flex items-center justify-center"><Icon
-                            icon="mdi:cancel-circle-outline"
-                            className="text-white w-10 h-10"
-                        /></div>}
-                        {status === 'assigned' && <div className="flex flex-col items-center gap-2 bg-green-700 rounded-2xl px-4 py-3 shadow-md w-fit mx-auto">
-                            <div className="flex items-center justify-center gap-2">
-                                <Icon
-                                    icon="ic:round-table-bar"
-                                    className="text-white w-6 h-6"
-                                />
-                                <span className="text-white text-xl font-semibold">
-                                    {reservationDetails?.tables?.name}
-                                </span>
+        <div className="w-full">
+            {/* Status Card */}
+            <div className="flex items-center justify-center mt-4">
+                <div className="shadow-black/5 border border-white/20 max-w-md w-full">
+                    <div className="flex flex-col items-center gap-6 justify-center">
+                        {/* Status Icon */}
+                        {status === 'waiting' && !expired && (
+                            <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-green-100 animate-pulse">
+                                <Icon icon="mdi:check" className="text-white w-10 h-10" />
+                                <div className="absolute inset-0 bg-green-500 rounded-full opacity-20 blur-xl animate-ping"></div>
                             </div>
+                        )}
+                        {status === 'cancelled' && (
+                            <div className="relative w-20 h-20 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-red-100">
+                                <Icon icon="mdi:close" className="text-white w-10 h-10" />
+                            </div>
+                        )}
+                        {status === 'assigned' && (
+                            <div className="flex flex-col items-center gap-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl px-8 py-6 shadow-xl shadow-green-500/20 w-fit mx-auto ring-4 ring-green-100">
+                                <div className="flex items-center justify-center gap-3">
+                                    <Icon icon="mdi:coffee" className="text-white w-5 h-5" />
+                                    <span className="text-white text-2xl font-bold">
+                                        {reservationDetails?.tables?.name}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {status === 'completed' && (
+                            <div className="relative w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg ring-4 ring-orange-100">
+                                <Icon icon="mdi:coffee" className="text-white w-10 h-10" />
+                            </div>
+                        )}
+
+                        {/* Status Text */}
+                        <div className="text-center space-y-3">
+                            {status === 'waiting' && !expired && (
+                                <p className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                    You're Added to the Queue
+                                </p>
+                            )}
+                            {status === 'cancelled' && (
+                                <p className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                                    Your reservation has been cancelled
+                                </p>
+                            )}
+                            {status === 'assigned' && (
+                                <div>
+                                    <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                                        Your table is ready!
+                                    </p>
+                                    <p className="text-slate-600 text-lg font-medium mt-2">
+                                        Kindly take your seat.
+                                    </p>
+                                </div>
+                            )}
+                            {status === 'completed' && (
+                                <p className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                                    Thank you for visiting us.
+                                </p>
+                            )}
                         </div>
-                        }
-                        {status === 'completed' && <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center"><Icon
-                            icon="arcticons:fossify-thankyou"
-                            className="text-white w-10 h-10"
-                        /></div>}
-                        <p className="text-gray-500 text-lg font-semibold">
-                            {status === 'waiting' && !expired && "You’re Added to the Queue"}
-                            {status === 'cancelled' && "Your reservation has been cancelled"}
-                            {status === 'assigned' && <span><span className='text-2xl'>Your table is ready!</span> <br /> Kindly take your seat <br />at <span className='font-bold'>Table {reservationDetails?.tables?.name}</span>.</span>}
-                            {status === 'completed' && <span>Thank you for visiting us.</span>}
-
-                        </p>
                     </div>
                 </div>
-            )}
-
-
-            {/* Reservation Details Card */}
-
-            <div className="shadow-lg rounded-2xl p-3 text-center border border-gray-100">
-                {status !== 'cancelled' &&
-                    <div className="mb-4">
-                        <p className="text-orange-600 text-md font-medium mb-1">Queue Reference</p>
-                        <p className="text-4xl font-bold text-orange-600">#Q{id}</p>
-                    </div>
-                }
-
-                {!expired && status == 'waiting' && (
-                    <div className='bg-orange-100 rounded-2xl p-2'>
-                        <p className="text-md font-semibold text-gray-800">You are in the queue</p>
-                        {status === 'waiting' && estimatedTime !== null
-                            ? `Estimated wait time: ${estimatedTime} minutes`
-                            : null}
-
-
-
-
-                    </div>
-                )}
-                <div className='p-1'>
-                    {status !== 'cancelled' && <hr className='border-gray-100 mt-2' />}
-
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Name</p>
-                        <p className='font-medium'>{name || 'N/A'}</p>
-                    </div>
-                    <hr className='border-gray-100 mt-2' />
-
-                </div>
-
-                <div className='p-1'>
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Phone</p>
-                        <p className='font-medium'>{phone || 'N/A'}</p>
-                    </div>
-                    <hr className='border-gray-100 mt-2' />
-                </div>
-                <div className='p-1'>
-
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Requested Time</p>
-                        <p className='font-medium'>{formatTime(created_at)}</p>
-                    </div>
-                    <hr className='border-gray-100 mt-2' />
-                </div>
-
-                <div className='p-1'>
-                    <div className="flex justify-between">
-                        <p className='font-medium text-gray-600'>Guest Count</p>
-                        <p className='font-medium'>{guests_count} People</p>
-
-                    </div>
-
-                </div>
-
-
             </div>
 
+            {/* Queue Reference & Details Card */}
+            <div className="p-4 text-center bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-inner border border-slate-100 mt-6">
+                {status !== 'cancelled' && status !== 'completed' && (
+                    <div className="mb-6">
+                        <p className="text-orange-500 text-sm font-semibold mb-3 uppercase tracking-wide flex items-center justify-center gap-2">
+                            <Icon icon="mdi:tag" className="text-orange-600 text-xs" />
+                            Queue Reference
+                        </p>
+                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl px-6 py-4 shadow-lg shadow-orange-500/20">
+                            <p className="text-4xl font-bold tracking-wider">#Q{id}</p>
+                        </div>
+                    </div>
+                )}
+
+                {!expired && status === 'waiting' && estimatedTime && (
+                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 mb-6 border border-orange-100 shadow-sm">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                            <Icon icon="mdi:clock-outline" className="w-4 h-4 text-orange-600 animate-spin" />
+                            <p className="text-lg font-bold text-orange-800">You are in the queue</p>
+                        </div>
+                        <p className="text-orange-600 font-medium">
+                            Estimated wait time: {estimatedTime} minutes
+                        </p>
+                    </div>
+                )}
+
+                {/* Details */}
+                <div className="space-y-3">
+                    {[
+                        { label: 'Name', value: name || 'N/A', icon: 'mdi:account' },
+                        { label: 'Phone', value: phone || 'N/A', icon: 'mdi:phone' },
+                        { label: 'Requested Time', value: formatTime(created_at), icon: 'mdi:clock-outline' },
+                        { label: 'Guest Count', value: `${guests_count} People`, icon: 'mdi:account-group' },
+                    ].map((item, idx) => (
+                        <div
+                            key={idx}
+                            className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+                                        <Icon icon={item.icon} className="w-4 h-4 text-slate-600" />
+                                    </div>
+                                    <p className="font-semibold text-slate-600">{item.label}</p>
+                                </div>
+                                <p className="font-bold text-slate-800">{item.value}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             {/* Action Button */}
-            <div className="mt-3 space-y-3">
+            <div className="mt-4">
                 <button
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2 rounded-xl font-normal text-lg  transition-colors"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2 rounded-xl font-medium text-lg transition-colors"
                     onClick={handleBackHome}
                 >
                     Back to Home

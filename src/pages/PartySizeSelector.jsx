@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGuest } from '../context/guestContext';
 
 const PartySizeSelector = () => {
   const [guestCount, setGuestCount] = useState(2);
+  const { restDetails } = useGuest()
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const navigate = useNavigate()
 
   const increaseCount = () => {
     if (guestCount < 16) {
@@ -28,38 +31,18 @@ const PartySizeSelector = () => {
   };
 
   const handleConfirm = () => {
-    setShowConfetti(true);
-    setTimeout(() => {
-      // navigate(`/rest/${restDetails.slug}/step1`);
-      console.log('Navigating to next step...');
-    }, 800);
+
+    navigate(`/rest/${restDetails.slug}/step1`);
+
   };
 
-  // Generate confetti particles
-  const confettiParticles = Array.from({ length: 20 }, (_, i) => (
-    <div
-      key={i}
-      className={`absolute w-2 h-2 rounded-full ${showConfetti ? 'animate-bounce' : 'opacity-0'
-        }`}
-      style={{
-        backgroundColor: ['#f97316', '#ef4444', '#f59e0b', '#10b981'][i % 4],
-        left: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 0.5}s`,
-        animationDuration: `${0.8 + Math.random() * 0.4}s`,
-      }}
-    />
-  ));
+
 
   return (
     <div className="relative flex flex-col   overflow-hidden">
 
 
-      {/* Confetti overlay */}
-      {showConfetti && (
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {confettiParticles}
-        </div>
-      )}
+
 
       <div className="relative z-20">
         {/* Header with slide-in animation */}
