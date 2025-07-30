@@ -15,7 +15,7 @@ const PartySizeSelector = () => {
   };
 
   const handleConfirm = () => {
-    navigate('/user/step1');
+    navigate('/rest/sribavan/step1');
   };
 
   return (

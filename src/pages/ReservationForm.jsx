@@ -5,9 +5,10 @@ import { useGuest } from '../context/guestContext'; // adjust path as needed
 import { supabase } from '../supabaseClient';
 
 const ReservationForm = () => {
-    const { guestDetails, setGuestDetails, guestCount, saveReservationId } = useGuest();
+    const { guestDetails, setGuestDetails, guestCount, saveReservationId, restDetails } = useGuest();
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+
 
     const validate = () => {
         const errs = {};
@@ -53,6 +54,7 @@ const ReservationForm = () => {
                 name,
                 phone,
                 email,
+                restaurant_slug: restDetails?.slug
             }
         ]).select().single();
 
@@ -62,7 +64,7 @@ const ReservationForm = () => {
             return;
         }
         saveReservationId(data.id)
-        navigate('/user/result');
+        navigate('/rest/sribavan/result');
     };
 
 

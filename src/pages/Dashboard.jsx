@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react/dist/iconify.js';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Link, Outlet } from "react-router-dom";
 import { useQueue } from '../context/queueContext';
+import { useAdminAuth } from '../context/adminAuthContext';
 
 
 
@@ -21,7 +22,6 @@ const formatTime = (iso) => {
 
 /* ===== COMPONENT ===== */
 const Dashboard = () => {
-    const appURL = "https://hts-ten.vercel.app/user/";
     const adminActions = [
         { label: "Manage Queues", icon: "mdi:cog", color: "bg-blue-100 text-blue-600", to: "/admin/queues" },
         { label: "Analytics", icon: "mdi:chart-bar", color: "bg-purple-100 text-purple-600", to: "/admin/analytics" },
@@ -32,6 +32,8 @@ const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const { admin } = useAdminAuth()
+    const appURL = `https://hts-ten.vercel.app/rest/${encodeURIComponent(admin?.restaurant?.slug || "")}`;
 
     useEffect(() => {
         // Get current user
@@ -158,7 +160,7 @@ const Dashboard = () => {
                             </div>
                             <div>
 
-                                <p className="text-xl font-extrabold text-gray-800 tracking-wide">Spice House</p>
+                                <p className="text-xl font-extrabold text-gray-800 tracking-wide">{admin?.restaurant?.name}</p>
                                 <p className="text-sm text-gray-700">Restaurant Management                                </p>
                             </div>
                         </div>
@@ -246,7 +248,7 @@ const Dashboard = () => {
                                 </button>
                                 <a
                                     href={document.querySelector("canvas")?.toDataURL()}
-                                    download="spice-house-qr.png"
+                                    download={`${admin?.restaurant?.name}-qr.png`}
                                     title="Download QR"
                                     className="flex items-center gap-2 px-3 py-1 text-sm text-gray-700 bg-gray-100 border border-gray-200 rounded hover:bg-gray-200 transition"
                                 >

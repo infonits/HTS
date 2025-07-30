@@ -52,7 +52,7 @@ const VendorSelectionPage = () => {
           filteredVendors.map((vendor) => (
             <div
               key={vendor.id}
-              onClick={() => navigate('/user/')}
+              onClick={() => navigate('/rest/sribavan/')}
               className="flex items-center gap-4 p-4 border border-orange-200 rounded-lg hover:shadow-lg hover:border-orange-400 transition"
             >
               <img

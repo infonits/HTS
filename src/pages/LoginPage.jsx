@@ -1,13 +1,14 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
-import { supabase } from "../supabaseClient";      // adjust path as needed
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
+import { useAdminAuth } from "../context/adminAuthContext";
 
 export default function LoginPage() {
     const [form, setForm] = useState({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const { login, loading: authLoading } = useAdminAuth();
 
     const navigate = useNavigate()
 
@@ -18,19 +19,14 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-
-        const { error } = await supabase.auth.signInWithPassword({
-            email: form.email,
-            password: form.password,
-        });
-
-        if (error) {
-            setError(error.message);
-        } else {
-            // e.g. navigate("/dashboard") or close modal
-            navigate('/admin')
+        try {
+            await login(form.email, form.password); // ✅ Context handles Supabase & profile
+            navigate("/admin");
+        } catch (err) {
+            setError(err.message || "Login failed");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (

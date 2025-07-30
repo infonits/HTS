@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Icon } from '@iconify/react';
+import { useAdminAuth } from '../context/adminAuthContext';
 const COLOR_OPTIONS = [
     'bg-lime-500', 'bg-green-500',
     'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
@@ -16,24 +17,32 @@ export default function TableManagement() {
     const [showModal, setShowModal] = useState(false);
     const [page, setPage] = useState(1);
     const limit = 10;
+    const { admin } = useAdminAuth();
+
     const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
+        if (!admin?.restaurant?.slug) return;
+
         fetchTables();
-    }, [page]);
+    }, [page, admin]);
 
     const fetchTables = async () => {
+        if (!admin?.restaurant?.slug) return; // wait for admin
+
         const from = (page - 1) * limit;
         const to = page * limit - 1;
 
         const { data, count } = await supabase
             .from('tables')
-            .select('*,queues(id)', { count: 'exact' })      // 👈 get the total row-count
+
+            .select('*,queues(id)', { count: 'exact' })
+            .eq('restaurant_slug', admin.restaurant.slug)
             .order('created_at', { ascending: false })
             .range(from, to);
 
         setTables(data);
-        setTotalPages(Math.max(1, Math.ceil(count / limit))); // 👈 calc pages
+        setTotalPages(Math.max(1, Math.ceil(count / limit)));
     };
 
     const handleSubmit = async (e) => {
@@ -44,10 +53,10 @@ export default function TableManagement() {
 
         let result;
         if (editingId) {
-            result = await supabase.from('tables').update(form).eq('id', editingId).select();
+            result = await supabase.from('tables').update(form).eq('restaurant_slug', admin.restaurant.slug).eq('id', editingId).select();
             console.log("Update Result:", result);
         } else {
-            result = await supabase.from('tables').insert({ ...form }).select();
+            result = await supabase.from('tables').insert({ ...form, restaurant_slug: admin.restaurant.slug }).select();
             console.log("Insert Result:", result);
         }
 

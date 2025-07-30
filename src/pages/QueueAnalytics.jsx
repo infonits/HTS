@@ -5,6 +5,7 @@ import {
     ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis,
     Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend
 } from 'recharts'
+import { useAdminAuth } from '../context/adminAuthContext'
 
 export default function QueueAnalytics() {
     const [startDate, setStartDate] = useState(dayjs().subtract(7, 'day').format('YYYY-MM-DD'))
@@ -21,12 +22,13 @@ export default function QueueAnalytics() {
     const [queuesOverTime, setQueuesOverTime] = useState([])
     const [guestsOverTime, setGuestsOverTime] = useState([])
     const [statusDistribution, setStatusDistribution] = useState([])
-
+    const { admin } = useAdminAuth();
     const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f59e0b']
 
     useEffect(() => {
+        if (!admin?.restaurant?.slug) return;
         fetchAnalytics()
-    }, [startDate, endDate])
+    }, [startDate, endDate, admin])
 
     const fetchAnalytics = async () => {
         setLoading(true)
@@ -42,6 +44,7 @@ export default function QueueAnalytics() {
             const { data: queues, error: fetchError } = await supabase
                 .from('queues')
                 .select('*')
+                .eq('restaurant_slug', admin.restaurant.slug)
                 .gte('created_at', startDateTime)
                 .lte('created_at', endDateTime)
                 .order('created_at', { ascending: true })
