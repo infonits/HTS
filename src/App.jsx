@@ -27,40 +27,42 @@ function App() {
   return (
 
     <Router>
-      <AdminAuthProvider>
-        <Routes>
-          <Route path="/" element={<Navigate to="/vendor" replace />} />
 
-          <Route path='/rest/:slug' element={
-            <GuestProvider>
-              <UserPage />
-            </GuestProvider>} >
-            <Route path="" element={<PartySizeSelector />} />
-            <Route path="step1" element={<ReservationForm />} />
-            <Route path="result" element={<Result />} />
-          </Route>
+      <Routes>
+        <Route path="/" element={<Navigate to="/vendor" replace />} />
 
-          <Route path="/vendor" element={<VendorSelectionPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
+        <Route path='/rest/:slug' element={
+          <GuestProvider>
+            <UserPage />
+          </GuestProvider>} >
+          <Route path="" element={<PartySizeSelector />} />
+          <Route path="step1" element={<ReservationForm />} />
+          <Route path="result" element={<Result />} />
+        </Route>
+
+        <Route path="/vendor" element={<VendorSelectionPage />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminAuthProvider>
                 <QueueProvider>
                   <Dashboard />
                 </QueueProvider>
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="queues" replace />} />
-            <Route path="queues" element={<QueueManage />} />
-            <Route path="account" element={<MyAccount />} />
-            <Route path="analytics" element={<QueueAnalytics />} />
-            <Route path="tables" element={<TableMangement />} />
-          </Route>
+              </AdminAuthProvider>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="queues" replace />} />
+          <Route path="queues" element={<QueueManage />} />
+          <Route path="account" element={<MyAccount />} />
+          <Route path="analytics" element={<QueueAnalytics />} />
+          <Route path="tables" element={<TableMangement />} />
+        </Route>
+        <Route path="login" element={<AdminAuthProvider><LoginPage /></AdminAuthProvider>} />
 
-        </Routes>
-      </AdminAuthProvider>
+      </Routes>
+
     </Router>
   )
 }

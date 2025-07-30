@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useGuest } from '../context/guestContext';
 
 const PartySizeSelector = () => {
-  const { guestCount, setGuestCount } = useGuest();
+  const { guestCount, setGuestCount, restDetails } = useGuest();
+
   const navigate = useNavigate();
 
   const increaseCount = () => {
@@ -15,7 +16,7 @@ const PartySizeSelector = () => {
   };
 
   const handleConfirm = () => {
-    navigate('/rest/sribavan/step1');
+    navigate(`/rest/${restDetails.slug}/step1`);
   };
 
   return (

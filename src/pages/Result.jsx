@@ -7,6 +7,7 @@ import dayjs from 'dayjs'; // npm install dayjs
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { useAdminAuth } from '../context/adminAuthContext';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,7 +15,7 @@ dayjs.extend(localizedFormat);
 
 export default function Result() {
     const [show, setShow] = useState(false);
-    const { reservationId } = useGuest();
+    const { reservationId, restDetails } = useGuest();
     const [reservationDetails, setReservationDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
@@ -131,7 +132,7 @@ export default function Result() {
         }
 
         localStorage.removeItem("reservationId");
-        navigate('/user');
+        navigate(`/rest/${restDetails.slug}`);
     };
 
 
@@ -261,7 +262,7 @@ export default function Result() {
                         <p className="text-gray-500 text-lg font-semibold">
                             {status === 'waiting' && !expired && "You’re Added to the Queue"}
                             {status === 'cancelled' && "Your reservation has been cancelled"}
-                            {status === 'assigned' && <span><span className='text-2xl'>Thank you!</span> <br /> You can now have a seat <br />at the <span className='font-bold'>Table {reservationDetails?.tables?.name}</span>.</span>}
+                            {status === 'assigned' && <span><span className='text-2xl'>Your table is ready!</span> <br /> Kindly take your seat <br />at <span className='font-bold'>Table {reservationDetails?.tables?.name}</span>.</span>}
                             {status === 'completed' && <span>Thank you for visiting us.</span>}
 
                         </p>
@@ -333,7 +334,7 @@ export default function Result() {
             {/* Action Button */}
             <div className="mt-3 space-y-3">
                 <button
-                    className="w-full bg-orange-500 text-white py-2 rounded-xl font-normal text-lg hover:bg-orange-600 transition-colors"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2 rounded-xl font-normal text-lg  transition-colors"
                     onClick={handleBackHome}
                 >
                     Back to Home

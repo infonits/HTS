@@ -3,10 +3,12 @@ import { Icon } from '@iconify/react';
 import { useNavigate } from 'react-router-dom';
 import { useGuest } from '../context/guestContext'; // adjust path as needed
 import { supabase } from '../supabaseClient';
+import { useAdminAuth } from '../context/adminAuthContext';
 
 const ReservationForm = () => {
     const { guestDetails, setGuestDetails, guestCount, saveReservationId, restDetails } = useGuest();
     const [errors, setErrors] = useState({});
+
     const navigate = useNavigate();
 
 
@@ -64,28 +66,28 @@ const ReservationForm = () => {
             return;
         }
         saveReservationId(data.id)
-        navigate('/rest/sribavan/result');
+        navigate(`/rest/${restDetails.slug}/result`);
     };
 
 
 
     const inputWrapper = (field, icon, type, placeholder) => (
         <div className="mb-4">
-            <label className="text-md text-gray-700 block mb-1 capitalize">
+            <label className="text-md text-gray-800 block mb-1 capitalize ">
                 {field.replace(/^\w/, (c) => c.toUpperCase())}
             </label>
             <div
-                className={`flex items-center bg-gray-100 rounded-md px-3 py-2 w-full ${errors[field] ? 'border border-red-400 bg-red-50' : ''
+                className={`flex items-center bg-gray-100 rounded-md px-3 py-4 w-full ${errors[field] ? 'border border-red-400 bg-red-50' : ''
                     }`}
             >
-                <Icon icon={icon} className="text-orange-500 text-lg mr-2" />
+                <Icon icon={icon} className="text-gray-400 text-xl mr-2" />
                 <input
                     type={type}
                     name={field}
                     value={guestDetails[field]}
                     onChange={handleChange}
                     placeholder={placeholder}
-                    className="bg-transparent w-full outline-none text-md focus:ring-orange-500"
+                    className="bg-transparent w-full outline-none text-md "
                     required
                 />
             </div>
@@ -112,19 +114,19 @@ const ReservationForm = () => {
             <div className="w-full space-y-2 text-left">
                 {inputWrapper(
                     'name',
-                    'mdi:user',
+                    'lucide:user',
                     'text',
                     'Enter your full name'
                 )}
                 {inputWrapper(
                     'phone',
-                    'mdi:phone',
+                    'lucide:phone',
                     'tel',
                     'Enter your phone number'
                 )}
                 {inputWrapper(
                     'email',
-                    'mdi:email',
+                    'lucide:mail',
                     'email',
                     'Enter your email address'
                 )}

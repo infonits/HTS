@@ -12,6 +12,8 @@ export default function QueueAnalytics() {
     const [endDate, setEndDate] = useState(dayjs().format('YYYY-MM-DD'))
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [allQueues, setAllQueues] = useState([])
+
     const [summary, setSummary] = useState({
         totalQueues: 0,
         totalGuests: 0,
@@ -66,6 +68,7 @@ export default function QueueAnalytics() {
                 setQueuesOverTime([])
                 setGuestsOverTime([])
                 setStatusDistribution([])
+
                 return
             }
 
@@ -174,6 +177,8 @@ export default function QueueAnalytics() {
             setQueuesOverTime(dateRange.map(d => ({ date: d.date, queues: d.queues })))
             setGuestsOverTime(dateRange.map(d => ({ date: d.date, guests: d.guests })))
             setStatusDistribution(statusPieData)
+            setAllQueues(queues || [])
+
 
         } catch (error) {
             console.error('Error fetching analytics:', error)
@@ -182,6 +187,23 @@ export default function QueueAnalytics() {
             setLoading(false)
         }
     }
+    const handleDownloadCSV = () => {
+        if (!allQueues.length) return
+
+        const headers = Object.keys(allQueues[0])
+        const csvRows = [
+            headers.join(","), // header row
+            ...allQueues.map(row =>
+                headers.map(field => `"${row[field] ?? ''}"`).join(",")
+            )
+        ]
+        const csvContent = `data:text/csv;charset=utf-8,${csvRows.join("\n")}`
+        const link = document.createElement("a")
+        link.href = encodeURI(csvContent)
+        link.download = `queues_${startDate}_to_${endDate}.csv`
+        link.click()
+    }
+
 
     // Fixed: Better date input validation
     const handleStartDateChange = (e) => {
@@ -264,6 +286,49 @@ export default function QueueAnalytics() {
                     </div>
                 </div>
             </section>
+
+            <section className="bg-white rounded-lg shadow-sm p-6 overflow-x-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-sm">📄 All Queues</h3>
+                    <button
+                        onClick={handleDownloadCSV}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
+                    >
+                        Download CSV
+                    </button>
+                </div>
+
+                {allQueues.length > 0 ? (
+                    <table className="w-full text-sm border-collapse border border-gray-200">
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="border p-2">Name</th>
+                                <th className="border p-2">Phone</th>
+                                <th className="border p-2">Email</th>
+                                <th className="border p-2">Guests</th>
+                                <th className="border p-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {allQueues.map((q) => (
+                                <tr key={q.id}>
+
+                                    <td className="border p-2">{q.name}</td>
+                                    <td className="border p-2">{q.phone}</td>
+                                    <td className="border p-2">{q.email}</td>
+                                    <td className="border p-2">{q.guests_count}</td>
+                                    <td className="border p-2">{q.status}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <div className="text-center text-gray-500 py-8">
+                        No queues available for the selected range
+                    </div>
+                )}
+            </section>
+
 
             <section className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="font-semibold text-sm mb-2">📅 Queues Created Over Time</h3>

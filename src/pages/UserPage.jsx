@@ -7,8 +7,10 @@ export default function UserPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { restDetails } = useGuest()
-
-    const hideBackButton = location.pathname === '/vendor' || location.pathname === `/rest/${restDetails?.slug}` || location.pathname === `/rest/${restDetails?.slug}/`;
+    const hideBackButton =
+        location.pathname === '/vendor' ||
+        location.pathname === `/rest/${encodeURIComponent(restDetails?.slug || '')}` ||
+        location.pathname.startsWith(`/rest/${encodeURIComponent(restDetails?.slug || '')}/result`);
 
     const handleBack = () => {
         navigate(-1)
@@ -25,11 +27,18 @@ export default function UserPage() {
                         ) : (
                             <button
                                 onClick={handleBack}
-                                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                className="flex items-center justify-center w-10 h-10 rounded-full 
+               bg-gray-600 hover:bg-gray-700 transition-colors"
                             >
-                                <Icon icon="formkit:arrowleft" width="16" height="9" className="text-gray-600" />
+                                <Icon
+                                    icon="formkit:arrowleft"
+                                    width="16"
+                                    height="9"
+                                    className="text-white"
+                                />
                             </button>
                         )}
+
 
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
