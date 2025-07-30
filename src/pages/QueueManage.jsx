@@ -113,13 +113,34 @@ export default function QueueManage() {
         <main className="min-h-full p-6 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-8">
 
 
-            <section className="bg-white rounded-lg shadow-sm overflow-y-auto max-h-[75vh]">
-                <header className="p-6 border-b border-gray-200">
-                    <h2 className="font-semibold flex items-center space-x-2">
-                        <span className="w-3 h-3 bg-orange-500 rounded-full" /> <span>Pending Queues</span>
-                    </h2>
+            <section className="bg-white rounded-xl shadow-md border border-gray-200 overflow-y-auto max-h-[75vh]">
+                <style jsx>{`
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            animation: marquee 4s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+    `}</style>
+                {/* Clean Header */}
+                <header className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                            <h2 className="text-lg font-semibold text-gray-900">Pending Queues</h2>
+                        </div>
+                        <span className="text-sm text-gray-600 bg-gray-200 px-3 py-1 rounded-full">
+                            {queues.filter(q => q.table_id === null).length} waiting
+                        </span>
+                    </div>
                 </header>
-                <div className="p-6 space-y-4">
+
+                {/* Queue List */}
+                <div className="p-3 sm:p-4">
                     {queues
                         .filter(q => q.table_id === null)
                         .map(q => (
@@ -127,60 +148,103 @@ export default function QueueManage() {
                                 key={q.id}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, q)}
-
-                                className="bg-gradient-to-br from-orange-400 to-red-500  text-white p-4 rounded-lg cursor-move hover:bg-orange-800 transition relative"
+                                className="bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-lg p-4 mb-3 cursor-move hover:from-orange-500 hover:to-red-600 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
                             >
-                                <button className="absolute top-2 right-2" onClick={() => declineQueue(q.id)} title="Decline">
-                                    <Icon icon="material-symbols:close-rounded" className='h-4 w-4' />
-                                </button>
-                                <div className="flex lg:flex-row flex-col  justify-between items-center text-base font-medium">
-                                    <div className="flex flex-col">
-                                        <span className="text-lg text-white/60">#Q{q.id}</span> {/* Short ID */}
-                                        <span className="text-white font-semibold">{q.name}</span>
+                                {/* Top row - ID, Name, Decline */}
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                        <span className="text-orange-200 text-sm font-medium whitespace-nowrap">#{q.id}</span>
+                                        <div className="flex-1 min-w-0">
+                                            {q.name.length > 10 ? (
+                                                <div className="overflow-hidden whitespace-nowrap">
+                                                    <span className="text-white font-semibold text-base sm:text-lg inline-block animate-marquee">
+                                                        {q.name}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-white font-semibold text-base sm:text-lg">{q.name}</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <span className="text-sm text-white/70 flex items-center gap-1">
-                                        <Icon icon="mdi:clock-outline" className="w-4 h-4" />
+                                    <button
+                                        onClick={() => declineQueue(q.id)}
+                                        className="text-white hover:text-red-200 transition-colors p-1 flex-shrink-0 ml-2"
+                                        title="Decline"
+                                    >
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* Bottom row - Details */}
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 text-sm">
+                                    <div className="flex items-center gap-3 sm:gap-4">
+                                        <div className="flex items-center gap-1 text-orange-100">
+                                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                            <span className="whitespace-nowrap">{q.guests_count} people</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-orange-100">
+                                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="whitespace-nowrap">{formatDuration(q.created_at)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-orange-200 text-xs whitespace-nowrap">
                                         {formatTime(q.created_at)}
-                                    </span>
-
-                                </div>
-
-                                <div className='flex lg:flex-row flex-col  gap-3'>
-                                    <div className="flex items-center mt-1 text-base">
-                                        <Icon icon="mdi:account-group" className="w-4 h-4 mr-1" />
-                                        {q.guests_count} People
                                     </div>
-
-                                    <div className="text-base mt-1 italic flex justify-left items-center">
-                                        <Icon icon="gg:sand-clock" className='h-4 w-4' />
-                                        {formatDuration(q.created_at)}
-                                    </div>
-
                                 </div>
-
                             </div>
                         ))}
-                    {queues.length === 0 && <p className="text-gray-400 text-base">No queues for today 🎉</p>}
+
+                    {/* Empty state */}
+                    {queues.filter(q => q.table_id === null).length === 0 && (
+                        <div className="text-center py-12">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+                            <p className="text-gray-600">No pending queues for today 🎉</p>
+                        </div>
+                    )}
                 </div>
             </section>
 
             {/* capacity sections */}
-            <section className="md:col-span-2 xl:col-span-3 overflow-y-auto max-h-[75vh]">
-
+            <section className="md:col-span-2 xl:col-span-3 overflow-y-auto max-h-[75vh] pr-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                     {Object.keys(grouped).sort((a, b) => a - b).map(cap => (
-                        <div key={cap} className="bg-white rounded-lg shadow-sm">
-                            {/* ── header row ── */}
-                            <header className="p-3 bg-slate-200 flex justify-between items-center">
-                                <h3 className="font-semibold text-lg">{cap}-Seater Tables</h3>
-                                <span className="text-sm text-gray-500">
-                                    {grouped[cap].length} tables
-                                </span>
+                        <div key={cap} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden">
+                            {/* Modern header */}
+                            <header className="p-5 bg-gradient-to-r from-slate-100 to-slate-200 border-b border-slate-300/50">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-md">
+                                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="font-bold text-lg text-slate-800">{cap}-Seater Tables</h3>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="bg-white px-3 py-1 rounded-full text-sm font-semibold text-slate-600 shadow-sm border border-slate-200">
+                                            {grouped[cap].length} tables
+                                        </span>
+                                    </div>
+                                </div>
                             </header>
 
-                            {/* ── table boxes ── */}
-                            <div className="p-4 grid md:grid-cols-1 lg:grid-cols-2  xl:grid-cols-3 gap-4">
+                            {/* Table grid */}
+                            <div className="p-6 grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {grouped[cap].map(tbl => {
                                     const occupied = assigned.find(a => a.table_id === tbl.id);
                                     return (
@@ -188,38 +252,77 @@ export default function QueueManage() {
                                             key={tbl.id}
                                             onDrop={e => !occupied && handleDrop(e, tbl.id)}
                                             onDragOver={handleDragOver}
-
-                                            className={`relative rounded-lg text-center h-20 flex items-center justify-center
-                         border-2 border-dashed ${tbl.color.replace('500', '300')}
-                         ${occupied ? tbl.color : 'bg-gray-50'} transition`}
+                                            className={`relative rounded-2xl h-24 flex items-center justify-center
+                                          border-2 transition-all duration-300 group cursor-pointer
+                                          ${occupied
+                                                    ? `${tbl.color} border-transparent shadow-lg transform hover:scale-105`
+                                                    : `bg-gradient-to-br from-slate-50 to-slate-100 border-dashed ${tbl.color.replace('500', '300')} hover:from-slate-100 hover:to-slate-200 hover:border-solid hover:shadow-md`
+                                                }`}
                                         >
-                                            {/* empty slot */}
+                                            {/* Empty slot */}
                                             {!occupied && (
-                                                <span className=" text-gray-400 text-sm select-none text-center">
-                                                    Table {tbl.name}
-                                                </span>
+                                                <div className="text-center space-y-1">
+                                                    <div className="w-8 h-8 bg-slate-300 rounded-xl mx-auto flex items-center justify-center group-hover:bg-slate-400 transition-colors">
+                                                        <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                        </svg>
+                                                    </div>
+                                                    <span className="text-slate-500 text-sm font-medium select-none">
+                                                        Table {tbl.name}
+                                                    </span>
+                                                </div>
                                             )}
 
-                                            {/* occupied slot */}
+                                            {/* Occupied slot */}
                                             {occupied && (
                                                 <>
-                                                    <div className="text-white text-center space-y-1">
-                                                        <p className="text-base font-medium truncate">{occupied.name}</p>
-                                                        <p className="text-xs opacity-80 flex items-center justify-center gap-1">
-                                                            <Icon icon="mdi:clock-outline" className="w-4 h-4" />
-                                                            {formatTime(occupied.created_at)}
-                                                        </p>
+                                                    <div className="text-white text-center space-y-2 px-2">
+                                                        <div className="w-10 h-10 bg-white/20 rounded-xl mx-auto flex items-center justify-center backdrop-blur-sm">
+                                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold truncate">#Q{occupied.id}</p>
+                                                            <div className="flex items-center justify-center gap-1 text-xs opacity-90">
+                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                {formatTime(occupied.created_at)}
+                                                            </div>
+                                                        </div>
                                                     </div>
 
-                                                    {/* clear button */}
+                                                    {/* Complete button */}
                                                     <button
                                                         onClick={() => completeQueue(occupied.id)}
-                                                        className="absolute top-1 right-1 text-white hover:text-green-200"
-                                                        title="Clear / complete"
+                                                        className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full shadow-lg 
+                                                     flex items-center justify-center text-green-600 hover:text-green-700 
+                                                     hover:shadow-xl transition-all duration-200 border-2 border-green-100
+                                                     hover:scale-110 group/btn"
+                                                        title="Complete reservation"
                                                     >
-                                                        <Icon icon="mdi:check-circle-outline" className="w-6 h-6" />
+                                                        <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                d="M5 13l4 4L19 7" />
+                                                        </svg>
                                                     </button>
+
+                                                    {/* Status indicator */}
+                                                    <div className="absolute -top-1 -left-1 w-4 h-4 bg-green-400 rounded-full 
+                                                      border-2 border-white shadow-md animate-pulse"></div>
                                                 </>
+                                            )}
+
+                                            {/* Drop zone indicator */}
+                                            {!occupied && (
+                                                <div className="absolute inset-0 rounded-2xl border-2 border-transparent 
+                                                  group-hover:border-blue-400 group-hover:bg-blue-50/20 
+                                                  transition-all duration-200 pointer-events-none"></div>
                                             )}
                                         </div>
                                     );
