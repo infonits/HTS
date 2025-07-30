@@ -274,10 +274,12 @@ export default function Result() {
             {/* Reservation Details Card */}
 
             <div className="shadow-lg rounded-2xl p-3 text-center border border-gray-100">
-                <div className="mb-4">
-                    <p className="text-orange-600 text-md font-medium mb-1">Queue Reference</p>
-                    <p className="text-4xl font-bold text-orange-600">#Q{id}</p>
-                </div>
+                {status !== 'cancelled' &&
+                    <div className="mb-4">
+                        <p className="text-orange-600 text-md font-medium mb-1">Queue Reference</p>
+                        <p className="text-4xl font-bold text-orange-600">#Q{id}</p>
+                    </div>
+                }
 
                 {!expired && status == 'waiting' && (
                     <div className='bg-orange-100 rounded-2xl p-2'>
@@ -292,7 +294,7 @@ export default function Result() {
                     </div>
                 )}
                 <div className='p-1'>
-                    <hr className='border-gray-100 mt-2' />
+                    {status !== 'cancelled' && <hr className='border-gray-100 mt-2' />}
 
                     <div className="flex justify-between">
                         <p className='font-medium text-gray-600'>Name</p>

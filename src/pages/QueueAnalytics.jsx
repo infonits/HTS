@@ -55,6 +55,7 @@ export default function QueueAnalytics() {
                 throw fetchError
             }
             console.log('Fetched queues:', queues?.length || 0)
+            setAllQueues(queues || [])
 
             if (!queues || queues.length === 0) {
                 // Reset to empty state
@@ -177,7 +178,6 @@ export default function QueueAnalytics() {
             setQueuesOverTime(dateRange.map(d => ({ date: d.date, queues: d.queues })))
             setGuestsOverTime(dateRange.map(d => ({ date: d.date, guests: d.guests })))
             setStatusDistribution(statusPieData)
-            setAllQueues(queues || [])
 
 
         } catch (error) {

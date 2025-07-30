@@ -17,7 +17,7 @@ export default function UserPage() {
     };
     return (
         <div className="min-h-screen flex   justify-center  sm:px-4 px-0 bg-gradient-to-br from-orange-50 to-orange-100 ">
-            <div className=" w-full sm:max-w-md   text-center p-5 mt-3">
+            <div className=" w-full sm:max-w-md   text-center p-2 mt-3">
 
                 {/* Sticky Top Nav */}
                 <div className=" bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm border-b border-gray-100  shadow-xl rounded-t-2xl">
