@@ -52,7 +52,7 @@ export default function UserPage() {
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 p-8 bg-white  shadow-xl rounded-b-2xl mb-2">
+                <div className="flex-1 p-3 bg-white  shadow-xl rounded-b-2xl mb-2">
 
                     <Outlet />
                 </div>

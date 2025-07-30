@@ -101,7 +101,7 @@ const ReservationForm = () => {
 
     return (
 
-        <form
+        <form className='p-3'
             onSubmit={handleSubmit}
 
             noValidate

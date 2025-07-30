@@ -247,7 +247,7 @@ export default function Result() {
             </div>
 
             {/* Queue Reference & Details Card */}
-            <div className="p-4 text-center bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-inner border border-slate-100 mt-6">
+            <div className="p-3 text-center bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-inner border border-slate-100 mt-6">
                 {status !== 'cancelled' && status !== 'completed' && (
                     <div className="mb-6">
                         <p className="text-orange-500 text-sm font-semibold mb-3 uppercase tracking-wide flex items-center justify-center gap-2">
